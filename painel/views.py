@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 
 from agendamentos.models import Agendamento
 from contas.models import Usuario
+from financeiro.models import Receita
 from servicos.models import Servico
 
 
@@ -329,13 +330,54 @@ def alterar_status_agendamento(
         ]
     )
 
-    messages.success(
-        request,
-        (
-            "Agendamento atualizado para "
-            f"{agendamento.get_status_display()}."
+    # ==========================================
+    # CRIAÇÃO AUTOMÁTICA DA RECEITA
+    # ==========================================
+
+    if (
+        novo_status
+        == Agendamento.STATUS_CONCLUIDO
+    ):
+
+        receita, criada = (
+            Receita.objects.get_or_create(
+                agendamento=agendamento,
+                defaults={
+                    "valor": agendamento.servico.preco,
+                    "pago": False,
+                },
+            )
         )
-    )
+
+        if criada:
+
+            messages.success(
+                request,
+                (
+                    "Atendimento concluído e receita "
+                    "registrada automaticamente."
+                )
+            )
+
+        else:
+
+            messages.success(
+                request,
+                (
+                    "Atendimento concluído. "
+                    "A receita já estava registrada."
+                )
+            )
+
+    else:
+
+        messages.success(
+            request,
+            (
+                "Agendamento atualizado para "
+                f"{agendamento.get_status_display()}."
+            )
+        )
 
     return redirect(
         "painel_agendamentos"

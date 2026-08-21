@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "agendamentos",
     "painel",
     "funcionarios",
+    "financeiro",
+
 
     "django.contrib.admin",
     "django.contrib.auth",
