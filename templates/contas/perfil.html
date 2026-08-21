@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="customer-dashboard fade">
+
+    <div class="customer-welcome">
+
+        <div>
+
+            <span class="customer-eyebrow">
+                Área da Cliente
+            </span>
+
+            <h1>
+                Olá,
+                <span>
+                    {{ request.user.first_name|default:request.user.username }}
+                </span>
+            </h1>
+
+            <p>
+                Consulte seus horários e acompanhe seus
+                agendamentos no Bella Rosa.
+            </p>
+
+        </div>
+
+        <div class="customer-actions">
+
+            <a
+                href="{% url 'agendamento' %}"
+                class="button-link button-gold"
+            >
+                Novo agendamento
+            </a>
+
+            <a
+                href="{% url 'logout' %}"
+                class="button-link button-dark"
+            >
+                Sair da conta
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="customer-summary">
+
+        <div class="summary-card">
+
+            <span class="summary-label">
+                Cliente
+            </span>
+
+            <strong>
+                {{ request.user.first_name|default:request.user.username }}
+            </strong>
+
+        </div>
+
+        <div class="summary-card">
+
+            <span class="summary-label">
+                E-mail
+            </span>
+
+            <strong>
+                {{ request.user.email|default:"Não informado" }}
+            </strong>
+
+        </div>
+
+        <div class="summary-card">
+
+            <span class="summary-label">
+                Telefone
+            </span>
+
+            <strong>
+                {{ request.user.telefone|default:"Não informado" }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="appointments-header">
+
+        <div>
+
+            <span class="customer-eyebrow">
+                Sua agenda
+            </span>
+
+            <h2>
+                Meus Agendamentos
+            </h2>
+
+        </div>
+
+        <a
+            href="{% url 'agendamento' %}"
+            class="button-link button-outline-gold"
+        >
+            Agendar novo horário
+        </a>
+
+    </div>
+
+
+    {% if agendamentos %}
+
+        <div class="appointments-grid">
+
+            {% for agendamento in agendamentos %}
+
+                <article
+                    class="
+                        appointment-item
+
+                        {% if agendamento.status == 'CONFIRMADO' %}
+                            appointment-confirmed
+
+                        {% elif agendamento.status == 'PENDENTE' %}
+                            appointment-pending
+
+                        {% elif agendamento.status == 'CONCLUIDO' %}
+                            appointment-completed
+
+                        {% else %}
+                            appointment-cancelled
+                        {% endif %}
+                    "
+                >
+
+                    <div class="appointment-top">
+
+                        <div class="appointment-icon">
+                            ✦
+                        </div>
+
+                        <div class="appointment-title">
+
+                            <span class="appointment-service-label">
+                                Serviço
+                            </span>
+
+                            <h3>
+                                {{ agendamento.servico.nome }}
+                            </h3>
+
+                        </div>
+
+
+                        {% if agendamento.status == "CONFIRMADO" %}
+
+                            <span class="appointment-status status-confirmed">
+                                Confirmado
+                            </span>
+
+                        {% elif agendamento.status == "PENDENTE" %}
+
+                            <span class="appointment-status status-pending">
+                                Pendente
+                            </span>
+
+                        {% elif agendamento.status == "CONCLUIDO" %}
+
+                            <span class="appointment-status status-completed">
+                                Concluído
+                            </span>
+
+                        {% else %}
+
+                            <span class="appointment-status status-cancelled">
+                                {{ agendamento.get_status_display }}
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="appointment-professional-box">
+
+                        <span>
+                            Profissional responsável
+                        </span>
+
+                        <strong>
+
+                            {% if agendamento.funcionario %}
+
+                                {{ agendamento.funcionario.nome }}
+
+                            {% else %}
+
+                                A definir
+
+                            {% endif %}
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="appointment-details">
+
+                        <div class="appointment-detail">
+
+                            <span>
+                                Data
+                            </span>
+
+                            <strong>
+                                {{ agendamento.data|date:"d/m/Y" }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="appointment-detail">
+
+                            <span>
+                                Horário
+                            </span>
+
+                            <strong>
+                                {{ agendamento.horario|time:"H:i" }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="appointment-detail">
+
+                            <span>
+                                Duração
+                            </span>
+
+                            <strong>
+                                {{ agendamento.servico.duracao }}
+                                minutos
+                            </strong>
+
+                        </div>
+
+
+                        <div class="appointment-detail">
+
+                            <span>
+                                Valor
+                            </span>
+
+                            <strong>
+                                R$ {{ agendamento.servico.preco }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    {% if agendamento.observacao %}
+
+                        <div class="appointment-note">
+
+                            <span>
+                                Observação
+                            </span>
+
+                            <p>
+                                {{ agendamento.observacao }}
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    {% if agendamento.motivo_status %}
+
+                        <div class="appointment-note">
+
+                            <span>
+                                Informação do atendimento
+                            </span>
+
+                            <p>
+                                {{ agendamento.motivo_status }}
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    {% if agendamento.status == "PENDENTE" or agendamento.status == "CONFIRMADO" %}
+
+                        <div class="appointment-footer">
+
+                            <form
+                                method="POST"
+                                action="{% url 'cancelar_agendamento' agendamento.id %}"
+                                onsubmit="return confirmarCancelamento();"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="cancel-appointment-button"
+                                >
+                                    Cancelar agendamento
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="cancelled-message">
+
+                            {{ agendamento.get_status_display }}
+
+                        </div>
+
+                    {% endif %}
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-appointments">
+
+            <div class="empty-icon">
+                ✦
+            </div>
+
+            <h3>
+                Você ainda não possui agendamentos
+            </h3>
+
+            <p>
+                Escolha um serviço, uma profissional,
+                uma data e um horário disponível.
+            </p>
+
+            <a
+                href="{% url 'agendamento' %}"
+                class="button-link button-gold"
+            >
+                Fazer meu primeiro agendamento
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+
+<script>
+
+    function confirmarCancelamento() {
+
+        return confirm(
+            "Tem certeza de que deseja cancelar este agendamento?"
+        );
+
+    }
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,311 @@
+{% extends 'painel/base_painel.html' %}
+
+{% block title %}
+Funcionários | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+Funcionários
+{% endblock %}
+
+{% block menu_funcionarios %}
+active
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard fade">
+
+    <div class="employee-page-header">
+
+        <div>
+
+            <span class="customer-eyebrow">
+                Equipe do salão
+            </span>
+
+            <h1>Funcionários</h1>
+
+            <p>
+                Cadastre a equipe e informe os serviços
+                realizados por cada profissional.
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'cadastrar_funcionario' %}"
+            class="button-link button-gold"
+        >
+            Novo funcionário
+        </a>
+
+    </div>
+
+
+    <section class="admin-section">
+
+        <form method="GET" class="employee-filter">
+
+            <div class="form-group">
+
+                <label for="busca">
+                    Pesquisar
+                </label>
+
+                <input
+                    type="text"
+                    id="busca"
+                    name="busca"
+                    value="{{ busca }}"
+                    placeholder="Nome, CPF, telefone ou e-mail"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="situacao">
+                    Situação
+                </label>
+
+                <select
+                    id="situacao"
+                    name="situacao"
+                >
+
+                    <option
+                        value="ativos"
+                        {% if situacao == "ativos" %}
+                            selected
+                        {% endif %}
+                    >
+                        Ativos
+                    </option>
+
+                    <option
+                        value="inativos"
+                        {% if situacao == "inativos" %}
+                            selected
+                        {% endif %}
+                    >
+                        Inativos
+                    </option>
+
+                    <option
+                        value="todos"
+                        {% if situacao == "todos" %}
+                            selected
+                        {% endif %}
+                    >
+                        Todos
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="employee-filter-actions">
+
+                <button type="submit">
+                    Filtrar
+                </button>
+
+                <a
+                    href="{% url 'lista_funcionarios' %}"
+                    class="button-link button-dark"
+                >
+                    Limpar
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Equipe cadastrada
+                </span>
+
+                <h2>Profissionais</h2>
+
+            </div>
+
+            <span class="admin-count">
+                {{ funcionarios|length }} registro(s)
+            </span>
+
+        </div>
+
+
+        {% if funcionarios %}
+
+            <div class="employee-grid">
+
+                {% for funcionario in funcionarios %}
+
+                    <article class="employee-card">
+
+                        <div class="employee-card-top">
+
+                            <div class="employee-avatar">
+                                {{ funcionario.nome|slice:":1"|upper }}
+                            </div>
+
+                            <div class="employee-title">
+
+                                <h3>
+                                    {{ funcionario.nome }}
+                                </h3>
+
+                                <span>
+                                    {{ funcionario.get_cargo_display }}
+                                </span>
+
+                            </div>
+
+                            {% if funcionario.ativo %}
+
+                                <span class="employee-status active">
+                                    Ativo
+                                </span>
+
+                            {% else %}
+
+                                <span class="employee-status inactive">
+                                    Inativo
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="employee-information">
+
+                            <p>
+                                <strong>Telefone:</strong>
+                                {{ funcionario.telefone }}
+                            </p>
+
+                            <p>
+                                <strong>E-mail:</strong>
+                                {{ funcionario.email|default:"Não informado" }}
+                            </p>
+
+                            <p>
+                                <strong>CPF:</strong>
+                                {{ funcionario.cpf }}
+                            </p>
+
+                        </div>
+
+
+                        <div class="employee-services">
+
+                            <span>Serviços realizados</span>
+
+                            <div class="employee-service-tags">
+
+                                {% for servico in funcionario.servicos.all %}
+
+                                    <span>
+                                        {{ servico.nome }}
+                                    </span>
+
+                                {% empty %}
+
+                                    <small>
+                                        Nenhum serviço selecionado.
+                                    </small>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="employee-actions">
+
+                            <a
+                                href="{% url 'editar_funcionario' funcionario.id %}"
+                                class="button-link button-outline-gold employee-button"
+                            >
+                                Editar
+                            </a>
+
+                            <form
+                                method="POST"
+                                action="{% url 'alterar_situacao_funcionario' funcionario.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                {% if funcionario.ativo %}
+
+                                    <button
+                                        type="submit"
+                                        class="employee-button employee-disable-button"
+                                        onclick="return confirm('Deseja desativar este funcionário?');"
+                                    >
+                                        Desativar
+                                    </button>
+
+                                {% else %}
+
+                                    <button
+                                        type="submit"
+                                        class="employee-button employee-enable-button"
+                                    >
+                                        Ativar
+                                    </button>
+
+                                {% endif %}
+
+                            </form>
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-appointments">
+
+                <h3>Nenhum funcionário encontrado</h3>
+
+                <p>
+                    Cadastre o primeiro profissional do salão.
+                </p>
+
+                <a
+                    href="{% url 'cadastrar_funcionario' %}"
+                    class="button-link button-gold"
+                >
+                    Cadastrar funcionário
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</section>
+
+{% endblock %}

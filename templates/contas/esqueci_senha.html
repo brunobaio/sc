@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card">
+
+    <h2>Recuperar Senha</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color:red;">
+                {{ message }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">
+            Alterar Senha
+        </button>
+
+    </form>
+
+    <br>
+
+    <div style="text-align:center;">
+
+        <a href="{% url 'login' %}">
+            Voltar para o Login
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

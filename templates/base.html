@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Bella Rosa Beauty Salon</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Fonte -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Ícones -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+
+        <i class="fa-solid fa-spa"></i>
+
+        Bella Rosa
+
+    </div>
+
+    <nav>
+
+        <a href="/">
+            Início
+        </a>
+
+        <a href="#">
+            Serviços
+        </a>
+
+        <a href="#">
+            Pacotes
+        </a>
+
+        <a href="#">
+            Produtos
+        </a>
+
+        <a href="#">
+            Avaliações
+        </a>
+
+        {% if user.is_authenticated %}
+
+            <a href="{% url 'perfil' %}">
+                Minha Conta
+            </a>
+
+            <a href="{% url 'logout' %}">
+                Sair
+            </a>
+
+        {% else %}
+
+            <a href="{% url 'login' %}">
+                Entrar
+            </a>
+
+            <a href="{% url 'cadastro' %}">
+                Cadastro
+            </a>
+
+        {% endif %}
+
+    </nav>
+
+</header>
+
+
+<main class="container fade">
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+
+                {{ message }}
+
+            </div>
+
+            <br>
+
+        {% endfor %}
+
+    {% endif %}
+
+    {% block content %}
+    {% endblock %}
+
+</main>
+
+
+<footer>
+
+    <h3>Bella Rosa Beauty Salon</h3>
+
+    <br>
+
+    <p>
+        Beleza, elegância e autoestima em um só lugar.
+    </p>
+
+    <br>
+
+    <p>
+        © 2026 Todos os direitos reservados.
+    </p>
+
+</footer>
+
+</body>
+
+</html>

@@ -1,0 +1,366 @@
+{% extends 'painel/base_painel.html' %}
+
+{% block title %}
+Dashboard | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+Dashboard
+{% endblock %}
+
+{% block menu_dashboard %}
+active
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard fade">
+
+    <div class="admin-header">
+
+        <div>
+
+            <span class="customer-eyebrow">
+                Visão geral
+            </span>
+
+            <h1>
+                Painel Bella Rosa
+            </h1>
+
+            <p>
+                Acompanhe os principais dados e
+                atendimentos do salão.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-cards">
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Clientes
+            </span>
+
+            <strong>
+                {{ total_clientes }}
+            </strong>
+
+            <p>
+                Clientes cadastradas
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Agendamentos hoje
+            </span>
+
+            <strong>
+                {{ total_agendamentos_hoje }}
+            </strong>
+
+            <p>
+                Total de registros hoje
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Pendentes
+            </span>
+
+            <strong>
+                {{ total_pendentes }}
+            </strong>
+
+            <p>
+                Aguardando confirmação
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Confirmados
+            </span>
+
+            <strong>
+                {{ total_confirmados }}
+            </strong>
+
+            <p>
+                Atendimentos confirmados
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Concluídos
+            </span>
+
+            <strong>
+                {{ total_concluidos }}
+            </strong>
+
+            <p>
+                Atendidos hoje
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Serviços
+            </span>
+
+            <strong>
+                {{ total_servicos }}
+            </strong>
+
+            <p>
+                Serviços ativos
+            </p>
+
+        </article>
+
+    </div>
+
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Hoje
+                </span>
+
+                <h2>
+                    Agenda do dia
+                </h2>
+
+            </div>
+
+            <a
+                href="{% url 'painel_agendamentos' %}?filtro=hoje"
+                class="button-link button-outline-gold"
+            >
+                Ver agenda
+            </a>
+
+        </div>
+
+
+        {% if agendamentos_hoje %}
+
+            <div class="admin-table-wrapper">
+
+                <table class="admin-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Horário</th>
+                            <th>Cliente</th>
+                            <th>Serviço</th>
+                            <th>Profissional</th>
+                            <th>Status</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for agendamento in agendamentos_hoje %}
+
+                            <tr>
+
+                                <td>
+                                    {{ agendamento.horario|time:"H:i" }}
+                                </td>
+
+                                <td>
+                                    {{ agendamento.cliente.first_name|default:agendamento.cliente.username }}
+                                </td>
+
+                                <td>
+                                    {{ agendamento.servico.nome }}
+                                </td>
+
+                                <td>
+
+                                    {% if agendamento.funcionario %}
+
+                                        <span class="appointment-professional">
+                                            {{ agendamento.funcionario.nome }}
+                                        </span>
+
+                                    {% else %}
+
+                                        <span>
+                                            A definir
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ agendamento.get_status_display }}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-appointments">
+
+                <h3>
+                    Nenhum agendamento para hoje
+                </h3>
+
+                <p>
+                    A agenda está livre.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Próximos dias
+                </span>
+
+                <h2>
+                    Próximos agendamentos
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        {% if proximos_agendamentos %}
+
+            <div class="admin-table-wrapper">
+
+                <table class="admin-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Cliente</th>
+                            <th>Serviço</th>
+                            <th>Profissional</th>
+                            <th>Status</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for agendamento in proximos_agendamentos %}
+
+                            <tr>
+
+                                <td>
+                                    {{ agendamento.data|date:"d/m/Y" }}
+                                </td>
+
+                                <td>
+                                    {{ agendamento.horario|time:"H:i" }}
+                                </td>
+
+                                <td>
+                                    {{ agendamento.cliente.first_name|default:agendamento.cliente.username }}
+                                </td>
+
+                                <td>
+                                    {{ agendamento.servico.nome }}
+                                </td>
+
+                                <td>
+
+                                    {% if agendamento.funcionario %}
+
+                                        <span class="appointment-professional">
+                                            {{ agendamento.funcionario.nome }}
+                                        </span>
+
+                                    {% else %}
+
+                                        A definir
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ agendamento.get_status_display }}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-appointments">
+
+                <h3>
+                    Nenhum próximo agendamento
+                </h3>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</section>
+
+{% endblock %}

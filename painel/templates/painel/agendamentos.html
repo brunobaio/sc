@@ -1,0 +1,473 @@
+{% extends 'painel/base_painel.html' %}
+
+{% block title %}
+Agenda | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+Agendamentos
+{% endblock %}
+
+{% block menu_agendamentos %}
+active
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard fade">
+
+    <div class="admin-header">
+
+        <div>
+
+            <span class="customer-eyebrow">
+                Controle de atendimentos
+            </span>
+
+            <h1>
+                Agenda do salão
+            </h1>
+
+            <p>
+                Consulte clientes, serviços,
+                profissionais e situação dos atendimentos.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="agenda-tabs">
+
+        <a
+            href="?filtro=ativos"
+            class="agenda-tab {% if filtro == 'ativos' %}active{% endif %}"
+        >
+            Fila ativa
+        </a>
+
+        <a
+            href="?filtro=hoje"
+            class="agenda-tab {% if filtro == 'hoje' %}active{% endif %}"
+        >
+            Hoje
+        </a>
+
+        <a
+            href="?filtro=pendentes"
+            class="agenda-tab {% if filtro == 'pendentes' %}active{% endif %}"
+        >
+            Pendentes
+        </a>
+
+        <a
+            href="?filtro=confirmados"
+            class="agenda-tab {% if filtro == 'confirmados' %}active{% endif %}"
+        >
+            Confirmados
+        </a>
+
+        <a
+            href="?filtro=concluidos"
+            class="agenda-tab {% if filtro == 'concluidos' %}active{% endif %}"
+        >
+            Concluídos
+        </a>
+
+        <a
+            href="?filtro=cancelados"
+            class="agenda-tab {% if filtro == 'cancelados' %}active{% endif %}"
+        >
+            Cancelados / faltas
+        </a>
+
+    </div>
+
+
+    <section class="admin-section">
+
+        <form
+            method="GET"
+            class="agenda-filter"
+        >
+
+            <input
+                type="hidden"
+                name="filtro"
+                value="{{ filtro }}"
+            >
+
+
+            <div class="form-group">
+
+                <label for="busca">
+                    Pesquisar
+                </label>
+
+                <input
+                    type="text"
+                    id="busca"
+                    name="busca"
+                    value="{{ busca }}"
+                    placeholder="Cliente, profissional ou serviço"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="data">
+                    Data
+                </label>
+
+                <input
+                    type="date"
+                    id="data"
+                    name="data"
+                    value="{{ data_selecionada }}"
+                >
+
+            </div>
+
+
+            <div class="agenda-filter-actions">
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                >
+                    Filtrar
+                </button>
+
+                <a
+                    href="{% url 'painel_agendamentos' %}?filtro={{ filtro }}"
+                    class="button-link button-dark"
+                >
+                    Limpar
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Agenda
+                </span>
+
+                <h2>
+                    Atendimentos
+                </h2>
+
+            </div>
+
+            <span class="admin-count">
+                {{ agendamentos|length }} registro(s)
+            </span>
+
+        </div>
+
+
+        {% if agendamentos %}
+
+            <div class="agenda-list">
+
+                {% for agendamento in agendamentos %}
+
+                    <article
+                        class="
+                            agenda-item
+
+                            {% if agendamento.status == 'PENDENTE' %}
+                                agenda-pending
+
+                            {% elif agendamento.status == 'CONFIRMADO' %}
+                                agenda-confirmed
+
+                            {% elif agendamento.status == 'CONCLUIDO' %}
+                                agenda-completed
+
+                            {% else %}
+                                agenda-cancelled
+                            {% endif %}
+                        "
+                    >
+
+                        <div class="agenda-time">
+
+                            <strong>
+                                {{ agendamento.horario|time:"H:i" }}
+                            </strong>
+
+                            <span>
+                                {{ agendamento.data|date:"d/m/Y" }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="agenda-main-info">
+
+                            <span class="appointment-service-label">
+                                Cliente
+                            </span>
+
+                            <h3>
+                                {{ agendamento.cliente.first_name|default:agendamento.cliente.username }}
+                            </h3>
+
+                            <p>
+                                <strong>Serviço:</strong>
+                                {{ agendamento.servico.nome }}
+                            </p>
+
+                            <p>
+                                <strong>Profissional:</strong>
+
+                                <span class="appointment-professional">
+
+                                    {% if agendamento.funcionario %}
+
+                                        {{ agendamento.funcionario.nome }}
+
+                                    {% else %}
+
+                                        Não definido
+
+                                    {% endif %}
+
+                                </span>
+                            </p>
+
+                            <p>
+                                <strong>Duração:</strong>
+                                {{ agendamento.servico.duracao }} minutos
+                            </p>
+
+                            <p>
+                                <strong>Telefone:</strong>
+                                {{ agendamento.cliente.telefone|default:"Não informado" }}
+                            </p>
+
+                        </div>
+
+
+                        <div class="agenda-status-area">
+
+                            <span
+                                class="
+                                    appointment-status
+
+                                    {% if agendamento.status == 'PENDENTE' %}
+                                        status-pending
+
+                                    {% elif agendamento.status == 'CONFIRMADO' %}
+                                        status-confirmed
+
+                                    {% elif agendamento.status == 'CONCLUIDO' %}
+                                        status-completed
+
+                                    {% else %}
+                                        status-cancelled
+                                    {% endif %}
+                                "
+                            >
+                                {{ agendamento.get_status_display }}
+                            </span>
+
+                            <strong class="agenda-price">
+                                R$ {{ agendamento.servico.preco }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="agenda-actions">
+
+                            {% if agendamento.status == "PENDENTE" %}
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'painel_alterar_status' agendamento.id %}"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="CONFIRMADO"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="quick-action quick-confirm"
+                                    >
+                                        Confirmar
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+
+                            {% if agendamento.status == "CONFIRMADO" %}
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'painel_alterar_status' agendamento.id %}"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="CONCLUIDO"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="quick-action quick-complete"
+                                    >
+                                        Concluir
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+
+                            {% if agendamento.status == "PENDENTE" or agendamento.status == "CONFIRMADO" %}
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'painel_alterar_status' agendamento.id %}"
+                                    onsubmit="return confirm('Marcar como não compareceu?');"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="NAO_COMPARECEU"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="quick-action quick-warning"
+                                    >
+                                        Não compareceu
+                                    </button>
+
+                                </form>
+
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'painel_alterar_status' agendamento.id %}"
+                                    onsubmit="return confirm('Registrar desistência?');"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="DESISTENCIA"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="quick-action quick-dark"
+                                    >
+                                        Desistência
+                                    </button>
+
+                                </form>
+
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'painel_alterar_status' agendamento.id %}"
+                                    onsubmit="return confirm('Cancelar pelo salão?');"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="CANCELADO_ADMIN"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="quick-action quick-cancel"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        {% if agendamento.observacao %}
+
+                            <div class="agenda-note">
+
+                                <strong>
+                                    Observação:
+                                </strong>
+
+                                {{ agendamento.observacao }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-appointments">
+
+                <div class="empty-icon">
+                    ✦
+                </div>
+
+                <h3>
+                    Nenhum atendimento encontrado
+                </h3>
+
+                <p>
+                    Não existem registros para o filtro selecionado.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</section>
+
+{% endblock %}

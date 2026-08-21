@@ -1,0 +1,340 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+            Painel Bella Rosa
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/style.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+</head>
+
+<body class="admin-body">
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+
+        <div class="admin-brand">
+
+            <div class="admin-brand-icon">
+
+                <i class="fa-solid fa-spa"></i>
+
+            </div>
+
+            <div>
+
+                <strong>
+                    Bella Rosa
+                </strong>
+
+                <span>
+                    Painel administrativo
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav class="admin-sidebar-menu">
+
+            <a
+                href="{% url 'painel_dashboard' %}"
+                class="admin-sidebar-link {% block menu_dashboard %}{% endblock %}"
+            >
+
+                <i class="fa-solid fa-house"></i>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <a
+                href="{% url 'painel_agendamentos' %}"
+                class="admin-sidebar-link {% block menu_agendamentos %}{% endblock %}"
+            >
+
+                <i class="fa-solid fa-calendar-check"></i>
+
+                <span>
+                    Agendamentos
+                </span>
+
+            </a>
+
+
+            <a
+                href="{% url 'lista_funcionarios' %}"
+                class="admin-sidebar-link {% block menu_funcionarios %}{% endblock %}"
+            >
+
+                <i class="fa-solid fa-user-group"></i>
+
+                <span>
+                    Funcionários
+                </span>
+
+            </a>
+
+
+            <a
+                href="/admin/contas/usuario/"
+                class="admin-sidebar-link"
+            >
+
+                <i class="fa-solid fa-users"></i>
+
+                <span>
+                    Clientes
+                </span>
+
+            </a>
+
+
+            <a
+                href="/admin/servicos/servico/"
+                class="admin-sidebar-link"
+            >
+
+                <i class="fa-solid fa-scissors"></i>
+
+                <span>
+                    Serviços
+                </span>
+
+            </a>
+
+
+            <a
+                href="/admin/painel/databloqueada/"
+                class="admin-sidebar-link"
+            >
+
+                <i class="fa-solid fa-calendar-xmark"></i>
+
+                <span>
+                    Datas bloqueadas
+                </span>
+
+            </a>
+
+
+            <a
+                href="/admin/painel/horariofuncionamento/"
+                class="admin-sidebar-link"
+            >
+
+                <i class="fa-solid fa-clock"></i>
+
+                <span>
+                    Horários
+                </span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="admin-sidebar-footer">
+
+            <div class="admin-user-box">
+
+                <div class="admin-user-avatar">
+
+                    {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+
+                </div>
+
+                <div class="admin-user-info">
+
+                    <strong>
+
+                        {{ request.user.first_name|default:request.user.username }}
+
+                    </strong>
+
+                    <span>
+                        Administradora
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <a
+                href="{% url 'logout' %}"
+                class="admin-logout-link"
+            >
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                <span>
+                    Sair
+                </span>
+
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <main class="admin-main">
+
+        <header class="admin-topbar">
+
+            <button
+                type="button"
+                class="admin-menu-button"
+                id="adminMenuButton"
+                aria-label="Abrir menu"
+            >
+
+                <i class="fa-solid fa-bars"></i>
+
+            </button>
+
+
+            <div>
+
+                <span class="admin-topbar-label">
+
+                    Bella Rosa Beauty Salon
+
+                </span>
+
+                <h1>
+
+                    {% block page_title %}
+                        Painel
+                    {% endblock %}
+
+                </h1>
+
+            </div>
+
+
+            <a
+                href="/"
+                class="admin-site-link"
+            >
+
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                <span>
+                    Ver site
+                </span>
+
+            </a>
+
+        </header>
+
+
+        {% if messages %}
+
+            <div class="admin-messages">
+
+                {% for message in messages %}
+
+                    <div class="admin-message {{ message.tags }}">
+
+                        {{ message }}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="admin-content">
+
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<div
+    class="admin-sidebar-overlay"
+    id="adminSidebarOverlay"
+></div>
+
+
+<script>
+
+    const menuButton =
+        document.getElementById("adminMenuButton");
+
+    const sidebar =
+        document.querySelector(".admin-sidebar");
+
+    const overlay =
+        document.getElementById("adminSidebarOverlay");
+
+
+    function alternarMenu() {
+
+        sidebar.classList.toggle("open");
+
+        overlay.classList.toggle("show");
+
+    }
+
+
+    if (menuButton) {
+
+        menuButton.addEventListener(
+            "click",
+            alternarMenu
+        );
+
+    }
+
+
+    if (overlay) {
+
+        overlay.addEventListener(
+            "click",
+            alternarMenu
+        );
+
+    }
+
+</script>
+
+</body>
+
+</html>

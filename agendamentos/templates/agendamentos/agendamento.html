@@ -1,0 +1,643 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="auth-container">
+
+    <div class="auth-card fade">
+
+        <span class="customer-eyebrow">
+            Bella Rosa
+        </span>
+
+        <h2>Novo Agendamento</h2>
+
+        <p>
+            Escolha o serviço, a profissional, a data
+            e um horário disponível.
+        </p>
+
+        <form method="POST" id="form-agendamento">
+
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+
+                <div class="error">
+
+                    {% for erro in form.non_field_errors %}
+
+                        <p>
+                            {{ erro }}
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- SERVIÇO -->
+            <div class="form-group">
+
+                <label for="{{ form.servico.id_for_label }}">
+                    Serviço
+                </label>
+
+                {{ form.servico }}
+
+                {% for erro in form.servico.errors %}
+
+                    <p class="form-error">
+                        {{ erro }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- PROFISSIONAL -->
+            <div class="form-group">
+
+                <label for="{{ form.funcionario.id_for_label }}">
+                    Profissional
+                </label>
+
+                {{ form.funcionario }}
+
+                <p
+                    id="mensagem-funcionario"
+                    class="mensagem-horarios"
+                >
+                    Escolha primeiro um serviço.
+                </p>
+
+                {% for erro in form.funcionario.errors %}
+
+                    <p class="form-error">
+                        {{ erro }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- DURAÇÃO -->
+            <div
+                id="informacao-duracao"
+                class="informacao-duracao"
+            ></div>
+
+
+            <!-- DATA -->
+            <div class="form-group">
+
+                <label for="{{ form.data.id_for_label }}">
+                    Data
+                </label>
+
+                {{ form.data }}
+
+                {% for erro in form.data.errors %}
+
+                    <p class="form-error">
+                        {{ erro }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- HORÁRIO -->
+            <div class="form-group">
+
+                <label for="{{ form.horario.id_for_label }}">
+                    Horário
+                </label>
+
+                {{ form.horario }}
+
+                <p
+                    id="mensagem-horarios"
+                    class="mensagem-horarios"
+                >
+                    Escolha serviço, profissional e data.
+                </p>
+
+                {% for erro in form.horario.errors %}
+
+                    <p class="form-error">
+                        {{ erro }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- OBSERVAÇÃO -->
+            <div class="form-group">
+
+                <label for="{{ form.observacao.id_for_label }}">
+                    Observação
+                </label>
+
+                {{ form.observacao }}
+
+                {% for erro in form.observacao.errors %}
+
+                    <p class="form-error">
+                        {{ erro }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="btn-primary"
+            >
+                Confirmar Agendamento
+            </button>
+
+        </form>
+
+
+        <div class="auth-links">
+
+            <a href="{% url 'perfil' %}">
+                Voltar para minha conta
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<script>
+
+    const campoServico =
+        document.getElementById("id_servico");
+
+    const campoFuncionario =
+        document.getElementById("id_funcionario");
+
+    const campoData =
+        document.getElementById("id_data");
+
+    const campoHorario =
+        document.getElementById("id_horario");
+
+    const mensagemFuncionario =
+        document.getElementById("mensagem-funcionario");
+
+    const mensagemHorarios =
+        document.getElementById("mensagem-horarios");
+
+    const informacaoDuracao =
+        document.getElementById("informacao-duracao");
+
+
+    // =========================================
+    // CARREGAR FUNCIONÁRIOS
+    // =========================================
+
+    async function atualizarFuncionarios() {
+
+        const servico = campoServico.value;
+
+        campoFuncionario.innerHTML = "";
+
+        campoHorario.innerHTML = "";
+
+        informacaoDuracao.textContent = "";
+
+        const opcaoHorario =
+            document.createElement("option");
+
+        opcaoHorario.value = "";
+
+        opcaoHorario.textContent =
+            "Selecione serviço, profissional e data";
+
+        campoHorario.appendChild(opcaoHorario);
+
+
+        if (!servico) {
+
+            const opcaoInicial =
+                document.createElement("option");
+
+            opcaoInicial.value = "";
+
+            opcaoInicial.textContent =
+                "Selecione primeiro um serviço";
+
+            campoFuncionario.appendChild(
+                opcaoInicial
+            );
+
+            mensagemFuncionario.textContent =
+                "Escolha primeiro um serviço.";
+
+            return;
+
+        }
+
+
+        const opcaoCarregando =
+            document.createElement("option");
+
+        opcaoCarregando.value = "";
+
+        opcaoCarregando.textContent =
+            "Carregando profissionais...";
+
+        campoFuncionario.appendChild(
+            opcaoCarregando
+        );
+
+
+        const url =
+            "{% url 'funcionarios_disponiveis' %}"
+            + "?servico="
+            + encodeURIComponent(servico);
+
+
+        try {
+
+            const resposta = await fetch(url);
+
+            const dados = await resposta.json();
+
+            campoFuncionario.innerHTML = "";
+
+
+            const opcaoSelecione =
+                document.createElement("option");
+
+            opcaoSelecione.value = "";
+
+            opcaoSelecione.textContent =
+                "Escolha uma profissional";
+
+            campoFuncionario.appendChild(
+                opcaoSelecione
+            );
+
+
+            if (!dados.funcionarios.length) {
+
+                mensagemFuncionario.textContent =
+                    "Nenhuma profissional realiza este serviço.";
+
+                return;
+
+            }
+
+
+            dados.funcionarios.forEach(
+                function (funcionario) {
+
+                    const opcao =
+                        document.createElement("option");
+
+                    opcao.value =
+                        funcionario.id;
+
+                    opcao.textContent =
+                        funcionario.nome;
+
+                    campoFuncionario.appendChild(
+                        opcao
+                    );
+
+                }
+            );
+
+
+            mensagemFuncionario.textContent =
+                dados.funcionarios.length
+                + " profissional(is) disponível(is).";
+
+        }
+
+        catch (erro) {
+
+            campoFuncionario.innerHTML = "";
+
+            const opcaoErro =
+                document.createElement("option");
+
+            opcaoErro.value = "";
+
+            opcaoErro.textContent =
+                "Erro ao carregar profissionais";
+
+            campoFuncionario.appendChild(
+                opcaoErro
+            );
+
+            mensagemFuncionario.textContent =
+                "Não foi possível carregar as profissionais.";
+
+        }
+
+    }
+
+
+    // =========================================
+    // CARREGAR HORÁRIOS
+    // =========================================
+
+    async function atualizarHorarios() {
+
+        const servico =
+            campoServico.value;
+
+        const funcionario =
+            campoFuncionario.value;
+
+        const data =
+            campoData.value;
+
+
+        campoHorario.innerHTML = "";
+
+
+        if (
+            !servico
+            || !funcionario
+            || !data
+        ) {
+
+            const opcaoInicial =
+                document.createElement("option");
+
+            opcaoInicial.value = "";
+
+            opcaoInicial.textContent =
+                "Selecione serviço, profissional e data";
+
+            campoHorario.appendChild(
+                opcaoInicial
+            );
+
+            mensagemHorarios.textContent =
+                "Escolha serviço, profissional e data.";
+
+            informacaoDuracao.textContent = "";
+
+            return;
+
+        }
+
+
+        const opcaoCarregando =
+            document.createElement("option");
+
+        opcaoCarregando.value = "";
+
+        opcaoCarregando.textContent =
+            "Carregando horários...";
+
+        campoHorario.appendChild(
+            opcaoCarregando
+        );
+
+
+        const url =
+            "{% url 'horarios_disponiveis' %}"
+            + "?servico="
+            + encodeURIComponent(servico)
+            + "&funcionario="
+            + encodeURIComponent(funcionario)
+            + "&data="
+            + encodeURIComponent(data);
+
+
+        try {
+
+            const resposta =
+                await fetch(url);
+
+            const dados =
+                await resposta.json();
+
+
+            campoHorario.innerHTML = "";
+
+
+            if (dados.erro) {
+
+                const opcaoErro =
+                    document.createElement("option");
+
+                opcaoErro.value = "";
+
+                opcaoErro.textContent =
+                    "Nenhum horário disponível";
+
+                campoHorario.appendChild(
+                    opcaoErro
+                );
+
+                mensagemHorarios.textContent =
+                    dados.erro;
+
+                if (dados.duracao) {
+
+                    informacaoDuracao.textContent =
+                        "Duração aproximada: "
+                        + formatarDuracao(
+                            dados.duracao
+                        );
+
+                }
+
+                return;
+
+            }
+
+
+            informacaoDuracao.textContent =
+                "Duração aproximada: "
+                + formatarDuracao(
+                    dados.duracao
+                );
+
+
+            if (!dados.horarios.length) {
+
+                const opcaoVazia =
+                    document.createElement("option");
+
+                opcaoVazia.value = "";
+
+                opcaoVazia.textContent =
+                    "Nenhum horário disponível";
+
+                campoHorario.appendChild(
+                    opcaoVazia
+                );
+
+                mensagemHorarios.textContent =
+                    (
+                        "Não existem horários livres "
+                        + "para esta profissional nesta data."
+                    );
+
+                return;
+
+            }
+
+
+            const opcaoSelecione =
+                document.createElement("option");
+
+            opcaoSelecione.value = "";
+
+            opcaoSelecione.textContent =
+                "Escolha um horário";
+
+            campoHorario.appendChild(
+                opcaoSelecione
+            );
+
+
+            dados.horarios.forEach(
+                function (horario) {
+
+                    const opcao =
+                        document.createElement("option");
+
+                    opcao.value =
+                        horario;
+
+                    opcao.textContent =
+                        horario;
+
+                    campoHorario.appendChild(
+                        opcao
+                    );
+
+                }
+            );
+
+
+            mensagemHorarios.textContent =
+                dados.horarios.length
+                + " horário(s) disponível(is).";
+
+        }
+
+        catch (erro) {
+
+            campoHorario.innerHTML = "";
+
+            const opcaoErro =
+                document.createElement("option");
+
+            opcaoErro.value = "";
+
+            opcaoErro.textContent =
+                "Erro ao carregar horários";
+
+            campoHorario.appendChild(
+                opcaoErro
+            );
+
+            mensagemHorarios.textContent =
+                "Não foi possível consultar os horários.";
+
+        }
+
+    }
+
+
+    // =========================================
+    // FORMATAR DURAÇÃO
+    // =========================================
+
+    function formatarDuracao(minutos) {
+
+        if (!minutos) {
+
+            return "";
+
+        }
+
+        const horas =
+            Math.floor(
+                minutos / 60
+            );
+
+        const minutosRestantes =
+            minutos % 60;
+
+
+        if (
+            horas
+            && minutosRestantes
+        ) {
+
+            return (
+                horas
+                + "h "
+                + minutosRestantes
+                + "min"
+            );
+
+        }
+
+
+        if (horas) {
+
+            return (
+                horas
+                + "h"
+            );
+
+        }
+
+
+        return (
+            minutosRestantes
+            + " minutos"
+        );
+
+    }
+
+
+    // =========================================
+    // EVENTOS
+    // =========================================
+
+    campoServico.addEventListener(
+        "change",
+        atualizarFuncionarios
+    );
+
+
+    campoFuncionario.addEventListener(
+        "change",
+        atualizarHorarios
+    );
+
+
+    campoData.addEventListener(
+        "change",
+        atualizarHorarios
+    );
+
+</script>
+
+{% endblock %}
