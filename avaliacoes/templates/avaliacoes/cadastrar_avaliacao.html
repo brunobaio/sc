@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Nova Avaliação | Bella Rosa
+{% endblock %}
+
+
+{% block content %}
+
+<section class="avaliacao-form-section">
+
+    <div class="avaliacao-form-container">
+
+
+        <!-- ==========================================
+             CABEÇALHO
+        =========================================== -->
+
+        <div class="avaliacao-form-header">
+
+            <div class="avaliacao-form-icon">
+
+                <i class="fa-solid fa-star"></i>
+
+            </div>
+
+
+            <h1>
+                Avalie sua experiência
+            </h1>
+
+
+            <p>
+                Sua opinião ajuda o Bella Rosa
+                a oferecer um atendimento cada vez melhor.
+            </p>
+
+        </div>
+
+
+        <!-- ==========================================
+             FORMULÁRIO
+        =========================================== -->
+
+        <form
+            method="POST"
+            class="avaliacao-form"
+        >
+
+            {% csrf_token %}
+
+
+            <!-- ======================================
+                 ERROS GERAIS
+            ======================================= -->
+
+            {% if form.non_field_errors %}
+
+                <div class="error">
+
+                    {% for erro in form.non_field_errors %}
+
+                        <p>
+                            {{ erro }}
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- ======================================
+                 NOTA
+            ======================================= -->
+
+            <div class="form-group">
+
+                <label>
+                    Sua avaliação
+                </label>
+
+
+                <div
+                    class="rating-stars"
+                    id="rating-stars"
+                >
+
+                    {% for radio in form.nota %}
+
+                        <label
+                            class="rating-star"
+                            data-value="{{ radio.data.value }}"
+                            title="{{ radio.data.value }} estrela{% if radio.data.value != '1' %}s{% endif %}"
+                        >
+
+                            {{ radio.tag }}
+
+                            <i class="fa-solid fa-star"></i>
+
+                        </label>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <p
+                    class="rating-text"
+                    id="rating-text"
+                >
+                    Clique em uma estrela para avaliar
+                </p>
+
+
+                {% if form.nota.errors %}
+
+                    <div class="error">
+
+                        {% for erro in form.nota.errors %}
+
+                            <p>
+                                {{ erro }}
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ======================================
+                 COMENTÁRIO
+            ======================================= -->
+
+            <div class="form-group">
+
+                <label
+                    for="{{ form.comentario.id_for_label }}"
+                >
+                    Comentário
+                </label>
+
+
+                {{ form.comentario }}
+
+
+                <div class="comentario-contador">
+
+                    <span id="contador-comentario">
+                        0
+                    </span>
+
+                    / 500 caracteres
+
+                </div>
+
+
+                {% if form.comentario.errors %}
+
+                    <div class="error">
+
+                        {% for erro in form.comentario.errors %}
+
+                            <p>
+                                {{ erro }}
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ======================================
+                 BOTÕES
+            ======================================= -->
+
+            <div class="avaliacao-form-actions">
+
+
+                <a
+                    href="{% url 'lista_avaliacoes' %}"
+                    class="btn-outline"
+                >
+
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                    Cancelar
+
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                >
+
+                    <i class="fa-solid fa-paper-plane"></i>
+
+                    Enviar avaliação
+
+                </button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+<!-- ==============================================
+     JAVASCRIPT DAS ESTRELAS
+================================================ -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        const estrelas = document.querySelectorAll(
+            ".rating-star"
+        );
+
+
+        const areaEstrelas = document.getElementById(
+            "rating-stars"
+        );
+
+
+        const texto = document.getElementById(
+            "rating-text"
+        );
+
+
+        let notaSelecionada = 0;
+
+
+        const textos = {
+
+            1: "1 estrela - Ruim",
+
+            2: "2 estrelas - Regular",
+
+            3: "3 estrelas - Bom",
+
+            4: "4 estrelas - Muito bom",
+
+            5: "5 estrelas - Excelente"
+
+        };
+
+
+        /* ==========================================
+           PINTAR ESTRELAS
+        =========================================== */
+
+        function pintarEstrelas(valor) {
+
+            estrelas.forEach(
+                function (estrela) {
+
+                    const valorEstrela = parseInt(
+                        estrela.dataset.value
+                    );
+
+
+                    if (
+                        valorEstrela <= valor
+                    ) {
+
+                        estrela.classList.add(
+                            "selecionada"
+                        );
+
+                    } else {
+
+                        estrela.classList.remove(
+                            "selecionada"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* ==========================================
+           EVENTOS
+        =========================================== */
+
+        estrelas.forEach(
+            function (estrela) {
+
+
+                const input = estrela.querySelector(
+                    "input"
+                );
+
+
+                const valor = parseInt(
+                    estrela.dataset.value
+                );
+
+
+                /* PASSAR O MOUSE */
+
+                estrela.addEventListener(
+                    "mouseenter",
+                    function () {
+
+                        pintarEstrelas(
+                            valor
+                        );
+
+                    }
+                );
+
+
+                /* CLICAR */
+
+                estrela.addEventListener(
+                    "click",
+                    function () {
+
+
+                        notaSelecionada = valor;
+
+
+                        input.checked = true;
+
+
+                        pintarEstrelas(
+                            notaSelecionada
+                        );
+
+
+                        texto.textContent =
+                            textos[
+                                notaSelecionada
+                            ];
+
+                    }
+                );
+
+
+                /* ==================================
+                   CASO O FORM RETORNE COM ERRO
+                =================================== */
+
+                if (
+                    input.checked
+                ) {
+
+                    notaSelecionada =
+                        valor;
+
+
+                    pintarEstrelas(
+                        notaSelecionada
+                    );
+
+
+                    texto.textContent =
+                        textos[
+                            notaSelecionada
+                        ];
+
+                }
+
+            }
+        );
+
+
+        /* ==========================================
+           QUANDO O MOUSE SAIR
+        =========================================== */
+
+        areaEstrelas.addEventListener(
+            "mouseleave",
+            function () {
+
+                pintarEstrelas(
+                    notaSelecionada
+                );
+
+            }
+        );
+
+
+        /* ==========================================
+           CONTADOR DO COMENTÁRIO
+        =========================================== */
+
+        const comentario =
+            document.getElementById(
+                "id_comentario"
+            );
+
+
+        const contador =
+            document.getElementById(
+                "contador-comentario"
+            );
+
+
+        function atualizarContador() {
+
+            contador.textContent =
+                comentario.value.length;
+
+        }
+
+
+        comentario.addEventListener(
+            "input",
+            atualizarContador
+        );
+
+
+        atualizarContador();
+
+    }
+);
+
+</script>
+
+
+{% endblock %}

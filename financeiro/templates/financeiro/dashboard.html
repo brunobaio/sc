@@ -1,0 +1,1017 @@
+{% extends 'painel/base_painel.html' %}
+
+{% block title %}
+Financeiro | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+Financeiro
+{% endblock %}
+
+{% block menu_financeiro %}
+active
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard fade">
+
+    <div class="admin-header">
+
+        <div>
+
+            <span class="customer-eyebrow">
+                Gestão financeira
+            </span>
+
+            <h1>
+                Controle Financeiro
+            </h1>
+
+            <p>
+                Consulte faturamento, pagamentos
+                recebidos e valores pendentes.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         CARDS PRINCIPAIS
+    =========================================== -->
+
+    <div class="dashboard-cards">
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Faturamento hoje
+            </span>
+
+            <strong>
+                R$ {{ faturamento_hoje|floatformat:2 }}
+            </strong>
+
+            <p>
+                Total recebido hoje
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Faturamento do mês
+            </span>
+
+            <strong>
+                R$ {{ faturamento_mes|floatformat:2 }}
+            </strong>
+
+            <p>
+                Total recebido no mês atual
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Faturamento filtrado
+            </span>
+
+            <strong>
+                R$ {{ faturamento_filtrado|floatformat:2 }}
+            </strong>
+
+            <p>
+                Valor conforme os filtros
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                A receber
+            </span>
+
+            <strong>
+                R$ {{ total_pendente|floatformat:2 }}
+            </strong>
+
+            <p>
+                Valores ainda pendentes
+            </p>
+
+        </article>
+
+    </div>
+
+
+    <!-- ==========================================
+         FILTROS
+    =========================================== -->
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Pesquisa
+                </span>
+
+                <h2>
+                    Filtrar financeiro
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <form
+            method="GET"
+            class="finance-filter-form"
+        >
+
+            <div class="form-group">
+
+                <label for="data_inicial">
+                    Data inicial
+                </label>
+
+                <input
+                    type="date"
+                    id="data_inicial"
+                    name="data_inicial"
+                    value="{{ data_inicial }}"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="data_final">
+                    Data final
+                </label>
+
+                <input
+                    type="date"
+                    id="data_final"
+                    name="data_final"
+                    value="{{ data_final }}"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="funcionario">
+                    Profissional
+                </label>
+
+                <select
+                    id="funcionario"
+                    name="funcionario"
+                >
+
+                    <option value="">
+                        Todos
+                    </option>
+
+                    {% for funcionario in funcionarios %}
+
+                        <option
+                            value="{{ funcionario.id }}"
+                            {% if funcionario_selecionado == funcionario.id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ funcionario.nome }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="forma_pagamento">
+                    Forma de pagamento
+                </label>
+
+                <select
+                    id="forma_pagamento"
+                    name="forma_pagamento"
+                >
+
+                    <option value="">
+                        Todas
+                    </option>
+
+                    {% for valor, nome in formas_pagamento %}
+
+                        <option
+                            value="{{ valor }}"
+                            {% if forma_pagamento_selecionada == valor %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ nome }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="status">
+                    Status
+                </label>
+
+                <select
+                    id="status"
+                    name="status"
+                >
+
+                    <option value="">
+                        Todos
+                    </option>
+
+                    <option
+                        value="pago"
+                        {% if status_selecionado == "pago" %}
+                            selected
+                        {% endif %}
+                    >
+                        Pago
+                    </option>
+
+                    <option
+                        value="pendente"
+                        {% if status_selecionado == "pendente" %}
+                            selected
+                        {% endif %}
+                    >
+                        Pendente
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="finance-filter-actions">
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                >
+                    Filtrar
+                </button>
+
+                <a
+                    href="{% url 'financeiro_dashboard' %}"
+                    class="button-link button-dark"
+                >
+                    Limpar
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- ==========================================
+         GRÁFICOS
+    =========================================== -->
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Indicadores
+                </span>
+
+                <h2>
+                    Desempenho financeiro
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="finance-charts-grid">
+
+            <article class="finance-chart-card">
+
+                <div class="finance-chart-header">
+
+                    <div>
+
+                        <span class="customer-eyebrow">
+                            Evolução
+                        </span>
+
+                        <h3>
+                            Faturamento por mês
+                        </h3>
+
+                    </div>
+
+                </div>
+
+                <div class="finance-chart-container">
+
+                    <canvas id="graficoFaturamentoMes"></canvas>
+
+                </div>
+
+            </article>
+
+
+            <article class="finance-chart-card">
+
+                <div class="finance-chart-header">
+
+                    <div>
+
+                        <span class="customer-eyebrow">
+                            Equipe
+                        </span>
+
+                        <h3>
+                            Faturamento por profissional
+                        </h3>
+
+                    </div>
+
+                </div>
+
+                <div class="finance-chart-container">
+
+                    <canvas id="graficoProfissionais"></canvas>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         RESUMO
+    =========================================== -->
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Resumo
+                </span>
+
+                <h2>
+                    Situação dos pagamentos
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="finance-summary">
+
+            <div class="finance-summary-item">
+
+                <span>
+                    Receitas
+                </span>
+
+                <strong>
+                    {{ quantidade_receitas }}
+                </strong>
+
+            </div>
+
+
+            <div class="finance-summary-item">
+
+                <span>
+                    Pagas
+                </span>
+
+                <strong>
+                    {{ quantidade_pagas }}
+                </strong>
+
+            </div>
+
+
+            <div class="finance-summary-item">
+
+                <span>
+                    Pendentes
+                </span>
+
+                <strong>
+                    {{ quantidade_pendentes }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         RECEITAS
+    =========================================== -->
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Histórico financeiro
+                </span>
+
+                <h2>
+                    Receitas
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        {% if ultimas_receitas %}
+
+            <div class="finance-list">
+
+                {% for receita in ultimas_receitas %}
+
+                    <article class="finance-card">
+
+                        <div class="finance-card-main">
+
+                            <div>
+
+                                <span class="finance-small-label">
+                                    Cliente
+                                </span>
+
+                                <h3>
+                                    {{ receita.agendamento.cliente.first_name|default:receita.agendamento.cliente.username }}
+                                </h3>
+
+                            </div>
+
+
+                            {% if receita.pago %}
+
+                                <span class="finance-status paid">
+                                    Pago
+                                </span>
+
+                            {% else %}
+
+                                <span class="finance-status pending">
+                                    Pendente
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="finance-card-details">
+
+                            <div>
+
+                                <span>
+                                    Serviço
+                                </span>
+
+                                <strong>
+                                    {{ receita.agendamento.servico.nome }}
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    Profissional
+                                </span>
+
+                                <strong>
+
+                                    {% if receita.agendamento.funcionario %}
+
+                                        {{ receita.agendamento.funcionario.nome }}
+
+                                    {% else %}
+
+                                        Não definido
+
+                                    {% endif %}
+
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    Valor
+                                </span>
+
+                                <strong class="finance-value">
+                                    R$ {{ receita.valor|floatformat:2 }}
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    Atendimento
+                                </span>
+
+                                <strong>
+                                    {{ receita.agendamento.data|date:"d/m/Y" }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if receita.pago %}
+
+                            <div class="finance-payment-info">
+
+                                <div>
+
+                                    <span>
+                                        Forma de pagamento
+                                    </span>
+
+                                    <strong>
+                                        {{ receita.get_forma_pagamento_display }}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        Data do pagamento
+                                    </span>
+
+                                    <strong>
+                                        {{ receita.data_pagamento|date:"d/m/Y" }}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <form
+                                method="POST"
+                                action="{% url 'financeiro_marcar_pendente' receita.id %}"
+                                class="finance-actions"
+                                onsubmit="return confirm('Deseja realmente voltar este pagamento para pendente?');"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="finance-secondary-button"
+                                >
+                                    Marcar como pendente
+                                </button>
+
+                            </form>
+
+
+                        {% else %}
+
+
+                            <form
+                                method="POST"
+                                action="{% url 'financeiro_registrar_pagamento' receita.id %}"
+                                class="finance-payment-form"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <div class="form-group">
+
+                                    <label
+                                        for="pagamento_{{ receita.id }}"
+                                    >
+                                        Forma de pagamento
+                                    </label>
+
+                                    <select
+                                        id="pagamento_{{ receita.id }}"
+                                        name="forma_pagamento"
+                                        required
+                                    >
+
+                                        <option value="">
+                                            Selecione
+                                        </option>
+
+                                        {% for valor, nome in formas_pagamento %}
+
+                                            <option value="{{ valor }}">
+                                                {{ nome }}
+                                            </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                </div>
+
+
+                                <button
+                                    type="submit"
+                                    class="finance-pay-button"
+                                >
+                                    Confirmar pagamento
+                                </button>
+
+                            </form>
+
+                        {% endif %}
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-appointments">
+
+                <h3>
+                    Nenhuma receita encontrada
+                </h3>
+
+                <p>
+                    Não existem receitas que correspondam
+                    aos filtros selecionados.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</section>
+
+
+<!-- ==========================================
+     DADOS DOS GRÁFICOS
+========================================== -->
+
+{{ meses_labels|json_script:"meses-labels" }}
+{{ meses_valores|json_script:"meses-valores" }}
+
+{{ profissionais_labels|json_script:"profissionais-labels" }}
+{{ profissionais_valores|json_script:"profissionais-valores" }}
+
+
+<!-- CHART.JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+    // ==========================================
+    // DADOS
+    // ==========================================
+
+    const mesesLabels = JSON.parse(
+        document.getElementById(
+            "meses-labels"
+        ).textContent
+    );
+
+    const mesesValores = JSON.parse(
+        document.getElementById(
+            "meses-valores"
+        ).textContent
+    );
+
+
+    const profissionaisLabels = JSON.parse(
+        document.getElementById(
+            "profissionais-labels"
+        ).textContent
+    );
+
+    const profissionaisValores = JSON.parse(
+        document.getElementById(
+            "profissionais-valores"
+        ).textContent
+    );
+
+
+    // ==========================================
+    // CONFIGURAÇÃO GLOBAL
+    // ==========================================
+
+    Chart.defaults.color = "#bdbdbd";
+
+    Chart.defaults.borderColor =
+        "rgba(255,255,255,0.08)";
+
+
+    // ==========================================
+    // FATURAMENTO POR MÊS
+    // ==========================================
+
+    const graficoMes =
+        document.getElementById(
+            "graficoFaturamentoMes"
+        );
+
+
+    if (graficoMes) {
+
+        new Chart(
+            graficoMes,
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels: mesesLabels,
+
+                    datasets: [
+
+                        {
+
+                            label: "Faturamento",
+
+                            data: mesesValores,
+
+                            borderColor: "#c8a15a",
+
+                            backgroundColor:
+                                "rgba(200,161,90,0.15)",
+
+                            fill: true,
+
+                            tension: 0.35,
+
+                            borderWidth: 2,
+
+                            pointRadius: 4,
+
+                            pointBackgroundColor:
+                                "#c8a15a",
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label: function(context) {
+
+                                    return (
+                                        "R$ "
+                                        + Number(
+                                            context.raw
+                                        ).toLocaleString(
+                                            "pt-BR",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        )
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+
+                                callback: function(value) {
+
+                                    return (
+                                        "R$ "
+                                        + value
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // ==========================================
+    // FATURAMENTO POR PROFISSIONAL
+    // ==========================================
+
+    const graficoProfissionais =
+        document.getElementById(
+            "graficoProfissionais"
+        );
+
+
+    if (graficoProfissionais) {
+
+        new Chart(
+            graficoProfissionais,
+            {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        profissionaisLabels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Faturamento",
+
+                            data:
+                                profissionaisValores,
+
+                            backgroundColor:
+                                "rgba(200,161,90,0.75)",
+
+                            borderColor:
+                                "#c8a15a",
+
+                            borderWidth: 1,
+
+                            borderRadius: 6,
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label: function(context) {
+
+                                    return (
+                                        "R$ "
+                                        + Number(
+                                            context.raw
+                                        ).toLocaleString(
+                                            "pt-BR",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        )
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+
+                                callback: function(value) {
+
+                                    return (
+                                        "R$ "
+                                        + value
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+</script>
+
+{% endblock %}

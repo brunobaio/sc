@@ -1,0 +1,312 @@
+{% extends 'painel/base_painel.html' %}
+
+{% block title %}
+Financeiro | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+Financeiro
+{% endblock %}
+
+{% block menu_financeiro %}
+active
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard fade">
+
+    <div class="admin-header">
+
+        <div>
+
+            <span class="customer-eyebrow">
+                Gestão financeira
+            </span>
+
+            <h1>
+                Controle Financeiro
+            </h1>
+
+            <p>
+                Acompanhe receitas, pagamentos
+                e valores pendentes.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-cards">
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Faturamento hoje
+            </span>
+
+            <strong>
+                R$ {{ faturamento_hoje|floatformat:2 }}
+            </strong>
+
+            <p>
+                Total recebido hoje
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Faturamento do mês
+            </span>
+
+            <strong>
+                R$ {{ faturamento_mes|floatformat:2 }}
+            </strong>
+
+            <p>
+                Total recebido neste mês
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                A receber
+            </span>
+
+            <strong>
+                R$ {{ total_pendente|floatformat:2 }}
+            </strong>
+
+            <p>
+                Pagamentos pendentes
+            </p>
+
+        </article>
+
+
+        <article class="dashboard-card">
+
+            <span class="dashboard-card-label">
+                Receitas
+            </span>
+
+            <strong>
+                {{ quantidade_receitas }}
+            </strong>
+
+            <p>
+                Registros financeiros
+            </p>
+
+        </article>
+
+    </div>
+
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Resumo
+                </span>
+
+                <h2>
+                    Situação dos pagamentos
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="finance-summary">
+
+            <div class="finance-summary-item">
+
+                <span>
+                    Pagos
+                </span>
+
+                <strong>
+                    {{ quantidade_pagas }}
+                </strong>
+
+            </div>
+
+
+            <div class="finance-summary-item">
+
+                <span>
+                    Pendentes
+                </span>
+
+                <strong>
+                    {{ quantidade_pendentes }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <span class="customer-eyebrow">
+                    Histórico
+                </span>
+
+                <h2>
+                    Últimas receitas
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        {% if ultimas_receitas %}
+
+            <div class="admin-table-wrapper">
+
+                <table class="admin-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Serviço</th>
+                            <th>Profissional</th>
+                            <th>Valor</th>
+                            <th>Pagamento</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for receita in ultimas_receitas %}
+
+                            <tr>
+
+                                <td>
+                                    {{ receita.agendamento.cliente.first_name|default:receita.agendamento.cliente.username }}
+                                </td>
+
+                                <td>
+                                    {{ receita.agendamento.servico.nome }}
+                                </td>
+
+                                <td>
+
+                                    {% if receita.agendamento.funcionario %}
+
+                                        {{ receita.agendamento.funcionario.nome }}
+
+                                    {% else %}
+
+                                        Não definido
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    R$ {{ receita.valor|floatformat:2 }}
+                                </td>
+
+                                <td>
+
+                                    {% if receita.forma_pagamento %}
+
+                                        {{ receita.get_forma_pagamento_display }}
+
+                                    {% else %}
+
+                                        Não informado
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if receita.pago %}
+
+                                        <span class="finance-status paid">
+                                            Pago
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="finance-status pending">
+                                            Pendente
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if receita.data_pagamento %}
+
+                                        {{ receita.data_pagamento|date:"d/m/Y" }}
+
+                                    {% else %}
+
+                                        -
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-appointments">
+
+                <h3>
+                    Nenhuma receita cadastrada
+                </h3>
+
+                <p>
+                    As receitas aparecerão aqui
+                    quando os atendimentos forem concluídos.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</section>
+
+{% endblock %}

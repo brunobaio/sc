@@ -3,22 +3,22 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
-from django.shortcuts import (
-    get_object_or_404,
-    redirect,
-    render,
-)
+from django.db.models import Count, Q, Sum
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from agendamentos.models import Agendamento
 from contas.models import Usuario
 from financeiro.models import Receita
+from funcionarios.models import Funcionario
 from servicos.models import Servico
 
 
-def usuario_eh_administradora(usuario):
+# ==========================================================
+# PERMISSÕES
+# ==========================================================
 
+def usuario_eh_administradora(usuario):
     return (
         usuario.is_authenticated
         and (
@@ -30,22 +30,26 @@ def usuario_eh_administradora(usuario):
 
 
 def verificar_permissao_administradora(usuario):
-
     if not usuario_eh_administradora(usuario):
-
         raise PermissionDenied(
             "Você não possui permissão para acessar esta página."
         )
 
 
+# ==========================================================
+# DASHBOARD
+# ==========================================================
+
 @login_required(login_url="login")
 def dashboard(request):
 
-    verificar_permissao_administradora(
-        request.user
-    )
+    verificar_permissao_administradora(request.user)
 
     hoje = date.today()
+
+    # ------------------------------------------------------
+    # AGENDAMENTOS DE HOJE
+    # ------------------------------------------------------
 
     agendamentos_hoje = (
         Agendamento.objects
@@ -61,6 +65,10 @@ def dashboard(request):
             "horario"
         )
     )
+
+    # ------------------------------------------------------
+    # PRÓXIMOS AGENDAMENTOS
+    # ------------------------------------------------------
 
     proximos_agendamentos = (
         Agendamento.objects
@@ -82,6 +90,10 @@ def dashboard(request):
         )[:10]
     )
 
+    # ------------------------------------------------------
+    # CLIENTES
+    # ------------------------------------------------------
+
     total_clientes = (
         Usuario.objects
         .filter(
@@ -91,6 +103,10 @@ def dashboard(request):
         .count()
     )
 
+    # ------------------------------------------------------
+    # SERVIÇOS
+    # ------------------------------------------------------
+
     total_servicos = (
         Servico.objects
         .filter(
@@ -98,6 +114,10 @@ def dashboard(request):
         )
         .count()
     )
+
+    # ------------------------------------------------------
+    # TOTAIS DE HOJE
+    # ------------------------------------------------------
 
     total_agendamentos_hoje = (
         agendamentos_hoje.count()
@@ -127,16 +147,199 @@ def dashboard(request):
         .count()
     )
 
+    # ------------------------------------------------------
+    # AGENDAMENTOS DO MÊS
+    # ------------------------------------------------------
+
+    agendamentos_mes = (
+        Agendamento.objects
+        .filter(
+            data__year=hoje.year,
+            data__month=hoje.month,
+        )
+    )
+
+    total_agendamentos_mes = (
+        agendamentos_mes.count()
+    )
+
+    total_concluidos_mes = (
+        agendamentos_mes
+        .filter(
+            status=Agendamento.STATUS_CONCLUIDO
+        )
+        .count()
+    )
+
+    total_cancelados_mes = (
+        agendamentos_mes
+        .filter(
+            status__in=[
+                Agendamento.STATUS_CANCELADO_CLIENTE,
+                Agendamento.STATUS_CANCELADO_ADMIN,
+                Agendamento.STATUS_DESISTENCIA,
+            ]
+        )
+        .count()
+    )
+
+    total_faltas_mes = (
+        agendamentos_mes
+        .filter(
+            status=Agendamento.STATUS_NAO_COMPARECEU
+        )
+        .count()
+    )
+
+    # ------------------------------------------------------
+    # SERVIÇO MAIS REALIZADO
+    # ------------------------------------------------------
+
+    servico_mais_realizado = (
+        agendamentos_mes
+        .filter(
+            status=Agendamento.STATUS_CONCLUIDO
+        )
+        .values(
+            "servico__nome"
+        )
+        .annotate(
+            total=Count("id")
+        )
+        .order_by(
+            "-total"
+        )
+        .first()
+    )
+
+    if servico_mais_realizado:
+
+        nome_servico_mais_realizado = (
+            servico_mais_realizado["servico__nome"]
+        )
+
+        total_servico_mais_realizado = (
+            servico_mais_realizado["total"]
+        )
+
+    else:
+
+        nome_servico_mais_realizado = "Sem dados"
+        total_servico_mais_realizado = 0
+
+    # ------------------------------------------------------
+    # PROFISSIONAL DESTAQUE
+    # ------------------------------------------------------
+
+    profissional_destaque = (
+        agendamentos_mes
+        .filter(
+            status=Agendamento.STATUS_CONCLUIDO,
+            funcionario__isnull=False,
+        )
+        .values(
+            "funcionario__nome"
+        )
+        .annotate(
+            total=Count("id")
+        )
+        .order_by(
+            "-total"
+        )
+        .first()
+    )
+
+    if profissional_destaque:
+
+        nome_profissional_destaque = (
+            profissional_destaque["funcionario__nome"]
+        )
+
+        total_profissional_destaque = (
+            profissional_destaque["total"]
+        )
+
+    else:
+
+        nome_profissional_destaque = "Sem dados"
+        total_profissional_destaque = 0
+
+    # ------------------------------------------------------
+    # FATURAMENTO DO MÊS
+    # ------------------------------------------------------
+
+    faturamento_mes = (
+        Receita.objects
+        .filter(
+            pago=True,
+            data_pagamento__year=hoje.year,
+            data_pagamento__month=hoje.month,
+        )
+        .aggregate(
+            total=Sum("valor")
+        )["total"]
+        or 0
+    )
+
+    # ------------------------------------------------------
+    # CONTEXTO
+    # ------------------------------------------------------
+
     contexto = {
-        "hoje": hoje,
-        "agendamentos_hoje": agendamentos_hoje,
-        "proximos_agendamentos": proximos_agendamentos,
-        "total_clientes": total_clientes,
-        "total_servicos": total_servicos,
-        "total_agendamentos_hoje": total_agendamentos_hoje,
-        "total_pendentes": total_pendentes,
-        "total_confirmados": total_confirmados,
-        "total_concluidos": total_concluidos,
+
+        "hoje":
+            hoje,
+
+        "agendamentos_hoje":
+            agendamentos_hoje,
+
+        "proximos_agendamentos":
+            proximos_agendamentos,
+
+        "total_clientes":
+            total_clientes,
+
+        "total_servicos":
+            total_servicos,
+
+        "total_agendamentos_hoje":
+            total_agendamentos_hoje,
+
+        "total_pendentes":
+            total_pendentes,
+
+        "total_confirmados":
+            total_confirmados,
+
+        "total_concluidos":
+            total_concluidos,
+
+        "total_agendamentos_mes":
+            total_agendamentos_mes,
+
+        "total_concluidos_mes":
+            total_concluidos_mes,
+
+        "total_cancelados_mes":
+            total_cancelados_mes,
+
+        "total_faltas_mes":
+            total_faltas_mes,
+
+        "nome_servico_mais_realizado":
+            nome_servico_mais_realizado,
+
+        "total_servico_mais_realizado":
+            total_servico_mais_realizado,
+
+        "nome_profissional_destaque":
+            nome_profissional_destaque,
+
+        "total_profissional_destaque":
+            total_profissional_destaque,
+
+        "faturamento_mes":
+            faturamento_mes,
     }
 
     return render(
@@ -146,12 +349,14 @@ def dashboard(request):
     )
 
 
+# ==========================================================
+# LISTA DE AGENDAMENTOS
+# ==========================================================
+
 @login_required(login_url="login")
 def lista_agendamentos(request):
 
-    verificar_permissao_administradora(
-        request.user
-    )
+    verificar_permissao_administradora(request.user)
 
     filtro = request.GET.get(
         "filtro",
@@ -180,6 +385,10 @@ def lista_agendamentos(request):
             "horario",
         )
     )
+
+    # ------------------------------------------------------
+    # FILTROS
+    # ------------------------------------------------------
 
     if filtro == "ativos":
 
@@ -225,37 +434,70 @@ def lista_agendamentos(request):
             data=date.today()
         )
 
+    # ------------------------------------------------------
+    # DATA
+    # ------------------------------------------------------
+
     if data_selecionada:
 
         agendamentos = agendamentos.filter(
             data=data_selecionada
         )
 
+    # ------------------------------------------------------
+    # PESQUISA
+    # ------------------------------------------------------
+
     if busca:
 
         agendamentos = agendamentos.filter(
+
             Q(
                 cliente__first_name__icontains=busca
             )
-            | Q(
+
+            |
+
+            Q(
                 cliente__username__icontains=busca
             )
-            | Q(
+
+            |
+
+            Q(
                 cliente__email__icontains=busca
             )
-            | Q(
+
+            |
+
+            Q(
                 servico__nome__icontains=busca
             )
-            | Q(
+
+            |
+
+            Q(
                 funcionario__nome__icontains=busca
             )
         )
 
+    # ------------------------------------------------------
+    # CONTEXTO
+    # ------------------------------------------------------
+
     contexto = {
-        "agendamentos": agendamentos,
-        "filtro": filtro,
-        "data_selecionada": data_selecionada,
-        "busca": busca,
+
+        "agendamentos":
+            agendamentos,
+
+        "filtro":
+            filtro,
+
+        "data_selecionada":
+            data_selecionada,
+
+        "busca":
+            busca,
     }
 
     return render(
@@ -265,6 +507,10 @@ def lista_agendamentos(request):
     )
 
 
+# ==========================================================
+# ALTERAR STATUS DO AGENDAMENTO
+# ==========================================================
+
 @login_required(login_url="login")
 @require_POST
 def alterar_status_agendamento(
@@ -272,9 +518,7 @@ def alterar_status_agendamento(
     agendamento_id,
 ):
 
-    verificar_permissao_administradora(
-        request.user
-    )
+    verificar_permissao_administradora(request.user)
 
     agendamento = get_object_or_404(
         Agendamento,
@@ -322,26 +566,19 @@ def alterar_status_agendamento(
             )
         )
 
-    agendamento.save(
-        update_fields=[
-            "status",
-            "motivo_status",
-            "atualizado_em",
-        ]
-    )
+    agendamento.save()
 
-    # ==========================================
-    # CRIAÇÃO AUTOMÁTICA DA RECEITA
-    # ==========================================
+    # ------------------------------------------------------
+    # GERAR RECEITA AUTOMATICAMENTE
+    # ------------------------------------------------------
 
-    if (
-        novo_status
-        == Agendamento.STATUS_CONCLUIDO
-    ):
+    if novo_status == Agendamento.STATUS_CONCLUIDO:
 
         receita, criada = (
             Receita.objects.get_or_create(
+
                 agendamento=agendamento,
+
                 defaults={
                     "valor": agendamento.servico.preco,
                     "pago": False,
@@ -384,6 +621,10 @@ def alterar_status_agendamento(
     )
 
 
+# ==========================================================
+# MENSAGENS DE STATUS
+# ==========================================================
+
 def mensagem_padrao_status(status):
 
     mensagens = {
@@ -392,7 +633,7 @@ def mensagem_padrao_status(status):
             "Agendamento definido como pendente.",
 
         Agendamento.STATUS_CONFIRMADO:
-            "Agendamento confirmado pela administradora.",
+            "Agendamento confirmado pelo salão.",
 
         Agendamento.STATUS_CANCELADO_CLIENTE:
             "Agendamento cancelado pela cliente.",
@@ -401,16 +642,10 @@ def mensagem_padrao_status(status):
             "Agendamento cancelado pelo salão.",
 
         Agendamento.STATUS_DESISTENCIA:
-            (
-                "Cliente informou que não poderá "
-                "comparecer ao atendimento."
-            ),
+            "Cliente informou desistência do atendimento.",
 
         Agendamento.STATUS_NAO_COMPARECEU:
-            (
-                "Cliente não compareceu "
-                "ao horário marcado."
-            ),
+            "Cliente não compareceu ao horário marcado.",
 
         Agendamento.STATUS_CONCLUIDO:
             "Atendimento realizado e concluído.",
@@ -419,4 +654,358 @@ def mensagem_padrao_status(status):
     return mensagens.get(
         status,
         ""
+    )
+
+
+# ==========================================================
+# RELATÓRIO DE ATENDIMENTOS
+# ==========================================================
+
+@login_required(login_url="login")
+def relatorio_atendimentos(request):
+
+    verificar_permissao_administradora(request.user)
+
+    # ------------------------------------------------------
+    # PEGAR FILTROS
+    # ------------------------------------------------------
+
+    data_inicial = request.GET.get(
+        "data_inicial",
+        ""
+    )
+
+    data_final = request.GET.get(
+        "data_final",
+        ""
+    )
+
+    funcionario_id = request.GET.get(
+        "funcionario",
+        ""
+    )
+
+    servico_id = request.GET.get(
+        "servico",
+        ""
+    )
+
+    status = request.GET.get(
+        "status",
+        ""
+    )
+
+    # ------------------------------------------------------
+    # QUERY INICIAL
+    # ------------------------------------------------------
+
+    agendamentos = (
+        Agendamento.objects
+        .select_related(
+            "cliente",
+            "servico",
+            "funcionario",
+        )
+        .all()
+    )
+
+    # ------------------------------------------------------
+    # FILTRO DATA INICIAL
+    # ------------------------------------------------------
+
+    if data_inicial:
+
+        agendamentos = agendamentos.filter(
+            data__gte=data_inicial
+        )
+
+    # ------------------------------------------------------
+    # FILTRO DATA FINAL
+    # ------------------------------------------------------
+
+    if data_final:
+
+        agendamentos = agendamentos.filter(
+            data__lte=data_final
+        )
+
+    # ------------------------------------------------------
+    # FILTRO PROFISSIONAL
+    # ------------------------------------------------------
+
+    if funcionario_id:
+
+        agendamentos = agendamentos.filter(
+            funcionario_id=funcionario_id
+        )
+
+    # ------------------------------------------------------
+    # FILTRO SERVIÇO
+    # ------------------------------------------------------
+
+    if servico_id:
+
+        agendamentos = agendamentos.filter(
+            servico_id=servico_id
+        )
+
+    # ------------------------------------------------------
+    # FILTRO STATUS
+    # ------------------------------------------------------
+
+    if status:
+
+        agendamentos = agendamentos.filter(
+            status=status
+        )
+
+    # ------------------------------------------------------
+    # ORDENAR
+    # ------------------------------------------------------
+
+    agendamentos = agendamentos.order_by(
+        "-data",
+        "-horario",
+    )
+
+    # ======================================================
+    # INDICADORES
+    # ======================================================
+
+    total_agendamentos = (
+        agendamentos.count()
+    )
+
+    total_concluidos = (
+        agendamentos
+        .filter(
+            status=Agendamento.STATUS_CONCLUIDO
+        )
+        .count()
+    )
+
+    total_pendentes = (
+        agendamentos
+        .filter(
+            status=Agendamento.STATUS_PENDENTE
+        )
+        .count()
+    )
+
+    total_confirmados = (
+        agendamentos
+        .filter(
+            status=Agendamento.STATUS_CONFIRMADO
+        )
+        .count()
+    )
+
+    total_cancelados = (
+        agendamentos
+        .filter(
+            status__in=[
+                Agendamento.STATUS_CANCELADO_CLIENTE,
+                Agendamento.STATUS_CANCELADO_ADMIN,
+                Agendamento.STATUS_DESISTENCIA,
+            ]
+        )
+        .count()
+    )
+
+    total_nao_compareceu = (
+        agendamentos
+        .filter(
+            status=Agendamento.STATUS_NAO_COMPARECEU
+        )
+        .count()
+    )
+
+    # ======================================================
+    # FATURAMENTO DO PERÍODO
+    # ======================================================
+
+    faturamento = (
+        Receita.objects
+        .filter(
+            agendamento__in=agendamentos,
+            pago=True,
+        )
+        .aggregate(
+            total=Sum("valor")
+        )["total"]
+        or 0
+    )
+
+    # ======================================================
+    # SERVIÇO MAIS REALIZADO
+    # ======================================================
+
+    servico_destaque = (
+        agendamentos
+        .filter(
+            status=Agendamento.STATUS_CONCLUIDO
+        )
+        .values(
+            "servico__nome"
+        )
+        .annotate(
+            total=Count("id")
+        )
+        .order_by(
+            "-total"
+        )
+        .first()
+    )
+
+    if servico_destaque:
+
+        nome_servico_destaque = (
+            servico_destaque["servico__nome"]
+        )
+
+        quantidade_servico_destaque = (
+            servico_destaque["total"]
+        )
+
+    else:
+
+        nome_servico_destaque = "Sem dados"
+        quantidade_servico_destaque = 0
+
+    # ======================================================
+    # PROFISSIONAL DESTAQUE
+    # ======================================================
+
+    profissional_destaque = (
+        agendamentos
+        .filter(
+            status=Agendamento.STATUS_CONCLUIDO,
+            funcionario__isnull=False,
+        )
+        .values(
+            "funcionario__nome"
+        )
+        .annotate(
+            total=Count("id")
+        )
+        .order_by(
+            "-total"
+        )
+        .first()
+    )
+
+    if profissional_destaque:
+
+        nome_profissional_destaque = (
+            profissional_destaque[
+                "funcionario__nome"
+            ]
+        )
+
+        quantidade_profissional_destaque = (
+            profissional_destaque[
+                "total"
+            ]
+        )
+
+    else:
+
+        nome_profissional_destaque = "Sem dados"
+        quantidade_profissional_destaque = 0
+
+    # ======================================================
+    # DADOS PARA SELECTS
+    # ======================================================
+
+    funcionarios = (
+        Funcionario.objects
+        .filter(
+            ativo=True
+        )
+        .order_by(
+            "nome"
+        )
+    )
+
+    servicos = (
+        Servico.objects
+        .filter(
+            ativo=True
+        )
+        .order_by(
+            "nome"
+        )
+    )
+
+    # ======================================================
+    # CONTEXTO
+    # ======================================================
+
+    contexto = {
+
+        "agendamentos":
+            agendamentos,
+
+        "funcionarios":
+            funcionarios,
+
+        "servicos":
+            servicos,
+
+        "status_choices":
+            Agendamento.STATUS_CHOICES,
+
+        "data_inicial":
+            data_inicial,
+
+        "data_final":
+            data_final,
+
+        "funcionario_selecionado":
+            funcionario_id,
+
+        "servico_selecionado":
+            servico_id,
+
+        "status_selecionado":
+            status,
+
+        "total_agendamentos":
+            total_agendamentos,
+
+        "total_concluidos":
+            total_concluidos,
+
+        "total_pendentes":
+            total_pendentes,
+
+        "total_confirmados":
+            total_confirmados,
+
+        "total_cancelados":
+            total_cancelados,
+
+        "total_nao_compareceu":
+            total_nao_compareceu,
+
+        "faturamento":
+            faturamento,
+
+        "nome_servico_destaque":
+            nome_servico_destaque,
+
+        "quantidade_servico_destaque":
+            quantidade_servico_destaque,
+
+        "nome_profissional_destaque":
+            nome_profissional_destaque,
+
+        "quantidade_profissional_destaque":
+            quantidade_profissional_destaque,
+    }
+
+    return render(
+        request,
+        "painel/relatorios.html",
+        contexto,
     )

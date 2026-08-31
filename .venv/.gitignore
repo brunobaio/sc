@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Banco de dados local
+db.sqlite3
+db.sqlite3-journal
+
+# Arquivos temporários
+*.log
+*.tmp
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Arquivos de cache
+.pytest_cache/
+.mypy_cache/

@@ -1,0 +1,759 @@
+{% extends "painel/base_painel.html" %}
+
+{% block content %}
+
+<style>
+
+    .relatorio-container {
+        padding: 10px;
+    }
+
+    .relatorio-header {
+        margin-bottom: 25px;
+    }
+
+    .relatorio-header h1 {
+        font-size: 28px;
+        margin-bottom: 5px;
+    }
+
+    .relatorio-header p {
+        color: #aaa;
+    }
+
+    .filtros-box {
+        background: #151515;
+        border: 1px solid #2b2b2b;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .filtros-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+    }
+
+    .campo {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .campo label {
+        margin-bottom: 6px;
+        font-size: 14px;
+        color: #c9a227;
+    }
+
+    .campo input,
+    .campo select {
+        background: #0f0f0f;
+        color: white;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .campo input:focus,
+    .campo select:focus {
+        outline: none;
+        border-color: #c9a227;
+    }
+
+    .botoes-filtro {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+    }
+
+    .btn-filtrar {
+        background: #c9a227;
+        color: black;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-limpar {
+        background: #2a2a2a;
+        color: white;
+        border: 1px solid #444;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .card-relatorio {
+        background: #151515;
+        border: 1px solid #2b2b2b;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .card-relatorio .titulo {
+        color: #aaa;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .card-relatorio .valor {
+        color: white;
+        font-size: 25px;
+        font-weight: bold;
+    }
+
+    .card-relatorio .icone {
+        color: #c9a227;
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    .destaques-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .destaque-box {
+        background: #151515;
+        border: 1px solid #2b2b2b;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .destaque-box h3 {
+        color: #c9a227;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .destaque-box .nome {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .destaque-box .quantidade {
+        color: #aaa;
+        margin-top: 5px;
+    }
+
+    .tabela-box {
+        overflow-x: auto;
+        background: #151515;
+        border: 1px solid #2b2b2b;
+        border-radius: 12px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 13px;
+        text-align: left;
+        border-bottom: 1px solid #292929;
+    }
+
+    th {
+        color: #c9a227;
+        font-size: 14px;
+    }
+
+    td {
+        color: #ddd;
+    }
+
+    .sem-dados {
+        text-align: center;
+        color: #888;
+        padding: 25px;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .status-pendente {
+        background: #4b3d00;
+        color: #ffd84d;
+    }
+
+    .status-confirmado {
+        background: #123f2b;
+        color: #61e8a1;
+    }
+
+    .status-concluido {
+        background: #173763;
+        color: #75b8ff;
+    }
+
+    .status-cancelado {
+        background: #541d1d;
+        color: #ff8b8b;
+    }
+
+    .titulo-secao {
+        margin-bottom: 15px;
+        margin-top: 25px;
+        font-size: 20px;
+    }
+
+    @media(max-width: 700px) {
+
+        .cards-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .destaques-grid {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+</style>
+
+
+<div class="relatorio-container">
+
+    <div class="relatorio-header">
+
+        <h1>Relatórios de Atendimentos</h1>
+
+        <p>
+            Consulte informações do salão por período,
+            profissional, serviço e status.
+        </p>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- FILTROS -->
+    <!-- ========================================= -->
+
+    <div class="filtros-box">
+
+        <form method="GET">
+
+            <div class="filtros-grid">
+
+
+                <div class="campo">
+
+                    <label>Data inicial</label>
+
+                    <input
+                        type="date"
+                        name="data_inicial"
+                        value="{{ data_inicial }}"
+                    >
+
+                </div>
+
+
+                <div class="campo">
+
+                    <label>Data final</label>
+
+                    <input
+                        type="date"
+                        name="data_final"
+                        value="{{ data_final }}"
+                    >
+
+                </div>
+
+
+                <div class="campo">
+
+                    <label>Profissional</label>
+
+                    <select name="funcionario">
+
+                        <option value="">
+                            Todas
+                        </option>
+
+                        {% for funcionario in funcionarios %}
+
+                            <option
+                                value="{{ funcionario.id }}"
+                                {% if funcionario_selecionado == funcionario.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ funcionario.nome }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="campo">
+
+                    <label>Serviço</label>
+
+                    <select name="servico">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        {% for servico in servicos %}
+
+                            <option
+                                value="{{ servico.id }}"
+                                {% if servico_selecionado == servico.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ servico.nome }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="campo">
+
+                    <label>Status</label>
+
+                    <select name="status">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        {% for valor, nome in status_choices %}
+
+                            <option
+                                value="{{ valor }}"
+                                {% if status_selecionado == valor %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ nome }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="botoes-filtro">
+
+                <button
+                    type="submit"
+                    class="btn-filtrar"
+                >
+
+                    <i class="fa-solid fa-filter"></i>
+                    Filtrar
+
+                </button>
+
+
+                <a
+                    href="{% url 'painel_relatorios' %}"
+                    class="btn-limpar"
+                >
+
+                    Limpar filtros
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- INDICADORES -->
+    <!-- ========================================= -->
+
+    <h2 class="titulo-secao">
+        Resumo
+    </h2>
+
+    <div class="cards-grid">
+
+
+        <div class="card-relatorio">
+
+            <div class="icone">
+                <i class="fa-solid fa-calendar"></i>
+            </div>
+
+            <div class="titulo">
+                Total de agendamentos
+            </div>
+
+            <div class="valor">
+                {{ total_agendamentos }}
+            </div>
+
+        </div>
+
+
+        <div class="card-relatorio">
+
+            <div class="icone">
+                <i class="fa-solid fa-check-double"></i>
+            </div>
+
+            <div class="titulo">
+                Concluídos
+            </div>
+
+            <div class="valor">
+                {{ total_concluidos }}
+            </div>
+
+        </div>
+
+
+        <div class="card-relatorio">
+
+            <div class="icone">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+
+            <div class="titulo">
+                Pendentes
+            </div>
+
+            <div class="valor">
+                {{ total_pendentes }}
+            </div>
+
+        </div>
+
+
+        <div class="card-relatorio">
+
+            <div class="icone">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div class="titulo">
+                Confirmados
+            </div>
+
+            <div class="valor">
+                {{ total_confirmados }}
+            </div>
+
+        </div>
+
+
+        <div class="card-relatorio">
+
+            <div class="icone">
+                <i class="fa-solid fa-ban"></i>
+            </div>
+
+            <div class="titulo">
+                Cancelados
+            </div>
+
+            <div class="valor">
+                {{ total_cancelados }}
+            </div>
+
+        </div>
+
+
+        <div class="card-relatorio">
+
+            <div class="icone">
+                <i class="fa-solid fa-user-xmark"></i>
+            </div>
+
+            <div class="titulo">
+                Não compareceram
+            </div>
+
+            <div class="valor">
+                {{ total_nao_compareceu }}
+            </div>
+
+        </div>
+
+
+        <div class="card-relatorio">
+
+            <div class="icone">
+                <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+
+            <div class="titulo">
+                Faturamento
+            </div>
+
+            <div class="valor">
+                R$ {{ faturamento|floatformat:2 }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- DESTAQUES -->
+    <!-- ========================================= -->
+
+    <h2 class="titulo-secao">
+        Destaques
+    </h2>
+
+    <div class="destaques-grid">
+
+
+        <div class="destaque-box">
+
+            <h3>
+                <i class="fa-solid fa-scissors"></i>
+                Serviço mais realizado
+            </h3>
+
+            <div class="nome">
+                {{ nome_servico_destaque }}
+            </div>
+
+            <div class="quantidade">
+
+                {{ quantidade_servico_destaque }}
+                atendimento{{ quantidade_servico_destaque|pluralize }}
+
+            </div>
+
+        </div>
+
+
+        <div class="destaque-box">
+
+            <h3>
+                <i class="fa-solid fa-award"></i>
+                Profissional destaque
+            </h3>
+
+            <div class="nome">
+                {{ nome_profissional_destaque }}
+            </div>
+
+            <div class="quantidade">
+
+                {{ quantidade_profissional_destaque }}
+                atendimento{{ quantidade_profissional_destaque|pluralize }}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- TABELA -->
+    <!-- ========================================= -->
+
+    <h2 class="titulo-secao">
+        Atendimentos
+    </h2>
+
+    <div class="tabela-box">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Data</th>
+
+                    <th>Horário</th>
+
+                    <th>Cliente</th>
+
+                    <th>Serviço</th>
+
+                    <th>Profissional</th>
+
+                    <th>Valor</th>
+
+                    <th>Status</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for agendamento in agendamentos %}
+
+                    <tr>
+
+                        <td>
+                            {{ agendamento.data|date:"d/m/Y" }}
+                        </td>
+
+
+                        <td>
+                            {{ agendamento.horario|time:"H:i" }}
+                        </td>
+
+
+                        <td>
+
+                            {% if agendamento.cliente.first_name %}
+
+                                {{ agendamento.cliente.first_name }}
+
+                            {% else %}
+
+                                {{ agendamento.cliente.username }}
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+                            {{ agendamento.servico.nome }}
+                        </td>
+
+
+                        <td>
+
+                            {% if agendamento.funcionario %}
+
+                                {{ agendamento.funcionario.nome }}
+
+                            {% else %}
+
+                                Não definido
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            R$
+                            {{ agendamento.servico.preco|floatformat:2 }}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if agendamento.status == "PENDENTE" %}
+
+                                <span class="status status-pendente">
+
+                                    Pendente
+
+                                </span>
+
+
+                            {% elif agendamento.status == "CONFIRMADO" %}
+
+                                <span class="status status-confirmado">
+
+                                    Confirmado
+
+                                </span>
+
+
+                            {% elif agendamento.status == "CONCLUIDO" %}
+
+                                <span class="status status-concluido">
+
+                                    Concluído
+
+                                </span>
+
+
+                            {% else %}
+
+                                <span class="status status-cancelado">
+
+                                    {{ agendamento.get_status_display }}
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+
+                {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            class="sem-dados"
+                        >
+
+                            Nenhum atendimento encontrado
+                            com os filtros selecionados.
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

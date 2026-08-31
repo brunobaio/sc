@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -13,34 +14,63 @@
 
     <title>
         {% block title %}
-            Painel Bella Rosa
+            Painel | Bella Rosa
         {% endblock %}
     </title>
+
+
+    <!-- CSS PRINCIPAL -->
 
     <link
         rel="stylesheet"
         href="{% static 'css/style.css' %}"
     >
 
+
+    <!-- FONT AWESOME -->
+
     <link
         rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
+
+
+    <style>
+
+        .admin-sidebar {
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .admin-sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+    </style>
 
 </head>
 
+
 <body class="admin-body">
 
-<div class="admin-layout">
+
+    <!-- ==========================================
+         SIDEBAR
+    =========================================== -->
 
     <aside class="admin-sidebar">
 
-        <div class="admin-brand">
 
-            <div class="admin-brand-icon">
+        <!-- ======================================
+             LOGO / NOME
+        ======================================= -->
 
-                <i class="fa-solid fa-spa"></i>
+        <div class="admin-sidebar-brand">
 
+            <div class="admin-sidebar-logo">
+                BR
             </div>
 
             <div>
@@ -50,7 +80,7 @@
                 </strong>
 
                 <span>
-                    Painel administrativo
+                    Administração
                 </span>
 
             </div>
@@ -58,14 +88,26 @@
         </div>
 
 
+        <!-- ==========================================
+             MENU
+        =========================================== -->
+
         <nav class="admin-sidebar-menu">
+
+
+            <!-- ======================================
+                 DASHBOARD
+            ======================================= -->
 
             <a
                 href="{% url 'painel_dashboard' %}"
-                class="admin-sidebar-link {% block menu_dashboard %}{% endblock %}"
+                class="
+                    admin-sidebar-link
+                    {% block menu_dashboard %}{% endblock %}
+                "
             >
 
-                <i class="fa-solid fa-house"></i>
+                <i class="fa-solid fa-chart-line"></i>
 
                 <span>
                     Dashboard
@@ -74,9 +116,16 @@
             </a>
 
 
+            <!-- ======================================
+                 AGENDAMENTOS
+            ======================================= -->
+
             <a
                 href="{% url 'painel_agendamentos' %}"
-                class="admin-sidebar-link {% block menu_agendamentos %}{% endblock %}"
+                class="
+                    admin-sidebar-link
+                    {% block menu_agendamentos %}{% endblock %}
+                "
             >
 
                 <i class="fa-solid fa-calendar-check"></i>
@@ -88,9 +137,58 @@
             </a>
 
 
+            <!-- ======================================
+                 RELATÓRIOS
+            ======================================= -->
+
+            <a
+                href="{% url 'painel_relatorios' %}"
+                class="
+                    admin-sidebar-link
+                    {% block menu_relatorios %}{% endblock %}
+                "
+            >
+
+                <i class="fa-solid fa-chart-column"></i>
+
+                <span>
+                    Relatórios
+                </span>
+
+            </a>
+
+
+            <!-- ======================================
+                 FINANCEIRO
+            ======================================= -->
+
+            <a
+                href="{% url 'financeiro_dashboard' %}"
+                class="
+                    admin-sidebar-link
+                    {% block menu_financeiro %}{% endblock %}
+                "
+            >
+
+                <i class="fa-solid fa-coins"></i>
+
+                <span>
+                    Financeiro
+                </span>
+
+            </a>
+
+
+            <!-- ======================================
+                 FUNCIONÁRIOS
+            ======================================= -->
+
             <a
                 href="{% url 'lista_funcionarios' %}"
-                class="admin-sidebar-link {% block menu_funcionarios %}{% endblock %}"
+                class="
+                    admin-sidebar-link
+                    {% block menu_funcionarios %}{% endblock %}
+                "
             >
 
                 <i class="fa-solid fa-user-group"></i>
@@ -101,6 +199,11 @@
 
             </a>
 
+
+            <!-- ======================================
+                 CLIENTES
+                 DJANGO ADMIN
+            ======================================= -->
 
             <a
                 href="/admin/contas/usuario/"
@@ -116,6 +219,11 @@
             </a>
 
 
+            <!-- ======================================
+                 SERVIÇOS
+                 DJANGO ADMIN
+            ======================================= -->
+
             <a
                 href="/admin/servicos/servico/"
                 class="admin-sidebar-link"
@@ -130,6 +238,53 @@
             </a>
 
 
+            <!-- ======================================
+                 PRODUTOS
+            ======================================= -->
+
+            <a
+                href="{% url 'painel_produtos' %}"
+                class="
+                    admin-sidebar-link
+                    {% block menu_produtos %}{% endblock %}
+                "
+            >
+
+                <i class="fa-solid fa-box-open"></i>
+
+                <span>
+                    Produtos
+                </span>
+
+            </a>
+
+
+            <!-- ======================================
+                 AVALIAÇÕES
+            ======================================= -->
+
+            <a
+                href="{% url 'painel_avaliacoes' %}"
+                class="
+                    admin-sidebar-link
+                    {% block menu_avaliacoes %}{% endblock %}
+                "
+            >
+
+                <i class="fa-solid fa-star"></i>
+
+                <span>
+                    Avaliações
+                </span>
+
+            </a>
+
+
+            <!-- ======================================
+                 DATAS BLOQUEADAS
+                 DJANGO ADMIN
+            ======================================= -->
+
             <a
                 href="/admin/painel/databloqueada/"
                 class="admin-sidebar-link"
@@ -143,6 +298,11 @@
 
             </a>
 
+
+            <!-- ======================================
+                 HORÁRIOS
+                 DJANGO ADMIN
+            ======================================= -->
 
             <a
                 href="/admin/painel/horariofuncionamento/"
@@ -160,26 +320,52 @@
         </nav>
 
 
+        <!-- ==========================================
+             RODAPÉ DA SIDEBAR
+        =========================================== -->
+
         <div class="admin-sidebar-footer">
 
-            <div class="admin-user-box">
+
+            <!-- ======================================
+                 USUÁRIO
+            ======================================= -->
+
+            <div class="admin-sidebar-user">
 
                 <div class="admin-user-avatar">
 
-                    {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+                    {% if request.user.first_name %}
+
+                        {{ request.user.first_name|first|upper }}
+
+                    {% else %}
+
+                        {{ request.user.username|first|upper }}
+
+                    {% endif %}
 
                 </div>
 
-                <div class="admin-user-info">
+
+                <div>
 
                     <strong>
 
-                        {{ request.user.first_name|default:request.user.username }}
+                        {% if request.user.first_name %}
+
+                            {{ request.user.first_name }}
+
+                        {% else %}
+
+                            {{ request.user.username }}
+
+                        {% endif %}
 
                     </strong>
 
                     <span>
-                        Administradora
+                        Administrador
                     </span>
 
                 </div>
@@ -187,9 +373,13 @@
             </div>
 
 
+            <!-- ======================================
+                 SAIR
+            ======================================= -->
+
             <a
                 href="{% url 'logout' %}"
-                class="admin-logout-link"
+                class="admin-sidebar-logout"
             >
 
                 <i class="fa-solid fa-right-from-bracket"></i>
@@ -205,56 +395,73 @@
     </aside>
 
 
+    <!-- ==========================================
+         CONTEÚDO PRINCIPAL
+    =========================================== -->
+
     <main class="admin-main">
 
+
+        <!-- ======================================
+             TOPO
+        ======================================= -->
+
         <header class="admin-topbar">
-
-            <button
-                type="button"
-                class="admin-menu-button"
-                id="adminMenuButton"
-                aria-label="Abrir menu"
-            >
-
-                <i class="fa-solid fa-bars"></i>
-
-            </button>
 
 
             <div>
 
                 <span class="admin-topbar-label">
-
-                    Bella Rosa Beauty Salon
-
+                    Bella Rosa
                 </span>
 
-                <h1>
+
+                <h2>
 
                     {% block page_title %}
+
                         Painel
+
                     {% endblock %}
 
-                </h1>
+                </h2>
 
             </div>
 
 
-            <a
-                href="/"
-                class="admin-site-link"
-            >
+            <!-- ==================================
+                 USUÁRIO DO TOPO
+            =================================== -->
 
-                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <div class="admin-topbar-user">
 
                 <span>
-                    Ver site
+                    Olá,
                 </span>
 
-            </a>
+
+                <strong>
+
+                    {% if request.user.first_name %}
+
+                        {{ request.user.first_name }}
+
+                    {% else %}
+
+                        {{ request.user.username }}
+
+                    {% endif %}
+
+                </strong>
+
+            </div>
 
         </header>
 
+
+        <!-- ==========================================
+             MENSAGENS DO DJANGO
+        =========================================== -->
 
         {% if messages %}
 
@@ -262,7 +469,12 @@
 
                 {% for message in messages %}
 
-                    <div class="admin-message {{ message.tags }}">
+                    <div
+                        class="
+                            admin-message
+                            {{ message.tags }}
+                        "
+                    >
 
                         {{ message }}
 
@@ -275,65 +487,21 @@
         {% endif %}
 
 
+        <!-- ==========================================
+             CONTEÚDO DAS PÁGINAS
+        =========================================== -->
+
         <div class="admin-content">
 
             {% block content %}
+
             {% endblock %}
 
         </div>
 
+
     </main>
 
-</div>
-
-
-<div
-    class="admin-sidebar-overlay"
-    id="adminSidebarOverlay"
-></div>
-
-
-<script>
-
-    const menuButton =
-        document.getElementById("adminMenuButton");
-
-    const sidebar =
-        document.querySelector(".admin-sidebar");
-
-    const overlay =
-        document.getElementById("adminSidebarOverlay");
-
-
-    function alternarMenu() {
-
-        sidebar.classList.toggle("open");
-
-        overlay.classList.toggle("show");
-
-    }
-
-
-    if (menuButton) {
-
-        menuButton.addEventListener(
-            "click",
-            alternarMenu
-        );
-
-    }
-
-
-    if (overlay) {
-
-        overlay.addEventListener(
-            "click",
-            alternarMenu
-        );
-
-    }
-
-</script>
 
 </body>
 

@@ -1,0 +1,336 @@
+{% extends 'painel/base_painel.html' %}
+
+{% block title %}
+    Produtos | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+    Produtos
+{% endblock %}
+
+{% block menu_produtos %}active{% endblock %}
+
+{% block content %}
+
+<div class="admin-page-header">
+
+    <div>
+        <h1>Produtos</h1>
+
+        <p>
+            Gerencie os produtos exibidos na vitrine do salão.
+        </p>
+    </div>
+
+    <a
+        href="{% url 'cadastrar_produto' %}"
+        class="btn-primary"
+    >
+        <i class="fa-solid fa-plus"></i>
+        Novo Produto
+    </a>
+
+</div>
+
+
+<!-- RESUMO -->
+
+<div class="admin-cards">
+
+    <div class="admin-card">
+
+        <span>Total de produtos</span>
+
+        <strong>
+            {{ total_produtos }}
+        </strong>
+
+    </div>
+
+
+    <div class="admin-card">
+
+        <span>Produtos ativos</span>
+
+        <strong>
+            {{ total_ativos }}
+        </strong>
+
+    </div>
+
+
+    <div class="admin-card">
+
+        <span>Produtos inativos</span>
+
+        <strong>
+            {{ total_inativos }}
+        </strong>
+
+    </div>
+
+
+    <div class="admin-card">
+
+        <span>Sem estoque</span>
+
+        <strong>
+            {{ total_sem_estoque }}
+        </strong>
+
+    </div>
+
+</div>
+
+
+<!-- TABELA -->
+
+<div class="admin-table-container">
+
+    <table class="admin-table">
+
+        <thead>
+
+            <tr>
+
+                <th>Imagem</th>
+
+                <th>Produto</th>
+
+                <th>Preço</th>
+
+                <th>Estoque</th>
+
+                <th>Status</th>
+
+                <th>Ações</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for produto in produtos %}
+
+                <tr>
+
+                    <!-- IMAGEM -->
+
+                    <td>
+
+                        {% if produto.imagem %}
+
+                            <img
+                                src="{{ produto.imagem.url }}"
+                                alt="{{ produto.nome }}"
+                                style="
+                                    width: 65px;
+                                    height: 65px;
+                                    object-fit: cover;
+                                    border-radius: 8px;
+                                "
+                            >
+
+                        {% else %}
+
+                            <div
+                                style="
+                                    width: 65px;
+                                    height: 65px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    border: 1px solid #444;
+                                    border-radius: 8px;
+                                "
+                            >
+
+                                <i class="fa-solid fa-image"></i>
+
+                            </div>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- NOME -->
+
+                    <td>
+
+                        <strong>
+                            {{ produto.nome }}
+                        </strong>
+
+                        {% if produto.descricao %}
+
+                            <br>
+
+                            <small>
+                                {{ produto.descricao|truncatechars:60 }}
+                            </small>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- PREÇO -->
+
+                    <td>
+
+                        R$ {{ produto.preco }}
+
+                    </td>
+
+
+                    <!-- ESTOQUE -->
+
+                    <td>
+
+                        {% if produto.estoque > 0 %}
+
+                            {{ produto.estoque }}
+
+                        {% else %}
+
+                            <strong>
+                                Sem estoque
+                            </strong>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- STATUS -->
+
+                    <td>
+
+                        {% if produto.ativo %}
+
+                            <span class="status-badge status-concluido">
+                                Ativo
+                            </span>
+
+                        {% else %}
+
+                            <span class="status-badge status-cancelado">
+                                Inativo
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- AÇÕES -->
+
+                    <td>
+
+                        <div
+                            style="
+                                display: flex;
+                                gap: 8px;
+                                flex-wrap: wrap;
+                            "
+                        >
+
+                            <!-- EDITAR -->
+
+                            <a
+                                href="{% url 'editar_produto' produto.id %}"
+                                class="btn-outline"
+                            >
+                                <i class="fa-solid fa-pen"></i>
+                                Editar
+                            </a>
+
+
+                            <!-- ATIVAR / DESATIVAR -->
+
+                            <form
+                                method="post"
+                                action="{% url 'alterar_status_produto' produto.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                {% if produto.ativo %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn-outline"
+                                    >
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                        Desativar
+                                    </button>
+
+                                {% else %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn-primary"
+                                    >
+                                        <i class="fa-solid fa-eye"></i>
+                                        Ativar
+                                    </button>
+
+                                {% endif %}
+
+                            </form>
+
+
+                            <!-- EXCLUIR -->
+
+                            <form
+                                method="post"
+                                action="{% url 'excluir_produto' produto.id %}"
+                                onsubmit="return confirm('Deseja realmente excluir este produto?');"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="btn-outline"
+                                >
+                                    <i class="fa-solid fa-trash"></i>
+                                    Excluir
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        style="text-align: center;"
+                    >
+
+                        Nenhum produto cadastrado.
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

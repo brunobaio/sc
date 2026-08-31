@@ -1,0 +1,372 @@
+{% extends "painel/base_painel.html" %}
+
+{% block title %}
+    Avaliações | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+    Avaliações
+{% endblock %}
+
+{% block menu_avaliacoes %}active{% endblock %}
+
+
+{% block content %}
+
+
+<!-- ======================================================
+     CABEÇALHO
+====================================================== -->
+
+<div class="admin-page-header">
+
+    <div>
+
+        <h1>
+            Avaliações
+        </h1>
+
+        <p>
+            Aprove e gerencie as avaliações enviadas pelas clientes.
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- ======================================================
+     CARDS
+====================================================== -->
+
+<div class="admin-cards">
+
+    <div class="admin-card">
+
+        <span>
+            <i class="fa-solid fa-star"></i>
+            Total
+        </span>
+
+        <strong>
+            {{ total_avaliacoes }}
+        </strong>
+
+    </div>
+
+
+    <div class="admin-card">
+
+        <span>
+            <i class="fa-solid fa-clock"></i>
+            Pendentes
+        </span>
+
+        <strong>
+            {{ total_pendentes }}
+        </strong>
+
+    </div>
+
+
+    <div class="admin-card">
+
+        <span>
+            <i class="fa-solid fa-circle-check"></i>
+            Aprovadas
+        </span>
+
+        <strong>
+            {{ total_aprovadas }}
+        </strong>
+
+    </div>
+
+</div>
+
+
+<!-- ======================================================
+     FILTROS
+====================================================== -->
+
+<div class="avaliacoes-admin-filtros">
+
+    <a
+        href="?filtro=pendentes"
+        class="
+            btn-outline
+            {% if filtro == 'pendentes' %}
+                active
+            {% endif %}
+        "
+    >
+        Pendentes
+    </a>
+
+
+    <a
+        href="?filtro=aprovadas"
+        class="
+            btn-outline
+            {% if filtro == 'aprovadas' %}
+                active
+            {% endif %}
+        "
+    >
+        Aprovadas
+    </a>
+
+
+    <a
+        href="?filtro=todas"
+        class="
+            btn-outline
+            {% if filtro == 'todas' %}
+                active
+            {% endif %}
+        "
+    >
+        Todas
+    </a>
+
+</div>
+
+
+<!-- ======================================================
+     AVALIAÇÕES
+====================================================== -->
+
+<div class="avaliacoes-admin-lista">
+
+
+    {% for avaliacao in avaliacoes %}
+
+
+        <div class="avaliacao-admin-card">
+
+
+            <!-- ==========================================
+                 TOPO
+            =========================================== -->
+
+            <div class="avaliacao-admin-topo">
+
+
+                <div>
+
+                    <h3>
+
+                        {% if avaliacao.cliente.first_name %}
+
+                            {{ avaliacao.cliente.first_name }}
+
+                        {% else %}
+
+                            {{ avaliacao.cliente.username }}
+
+                        {% endif %}
+
+                    </h3>
+
+
+                    <span>
+
+                        {{ avaliacao.criado_em|date:"d/m/Y H:i" }}
+
+                    </span>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div>
+
+                    {% if avaliacao.aprovado %}
+
+                        <span class="status-badge status-concluido">
+
+                            <i class="fa-solid fa-check"></i>
+
+                            Aprovada
+
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge">
+
+                            <i class="fa-solid fa-clock"></i>
+
+                            Pendente
+
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- ==========================================
+                 ESTRELAS
+            =========================================== -->
+
+            <div class="avaliacao-admin-estrelas">
+
+                {% if avaliacao.nota == 1 %}
+
+                    ⭐
+
+                {% elif avaliacao.nota == 2 %}
+
+                    ⭐⭐
+
+                {% elif avaliacao.nota == 3 %}
+
+                    ⭐⭐⭐
+
+                {% elif avaliacao.nota == 4 %}
+
+                    ⭐⭐⭐⭐
+
+                {% elif avaliacao.nota == 5 %}
+
+                    ⭐⭐⭐⭐⭐
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ==========================================
+                 COMENTÁRIO
+            =========================================== -->
+
+            <div class="avaliacao-admin-comentario">
+
+                {{ avaliacao.comentario }}
+
+            </div>
+
+
+            <!-- ==========================================
+                 AÇÕES
+            =========================================== -->
+
+            <div class="avaliacao-admin-acoes">
+
+
+                {% if not avaliacao.aprovado %}
+
+
+                    <!-- APROVAR -->
+
+                    <form
+                        method="POST"
+                        action="{% url 'aprovar_avaliacao' avaliacao.id %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn-primary"
+                        >
+
+                            <i class="fa-solid fa-check"></i>
+
+                            Aprovar
+
+                        </button>
+
+                    </form>
+
+
+                {% else %}
+
+
+                    <!-- DESAPROVAR -->
+
+                    <form
+                        method="POST"
+                        action="{% url 'desaprovar_avaliacao' avaliacao.id %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn-outline"
+                        >
+
+                            <i class="fa-solid fa-eye-slash"></i>
+
+                            Desaprovar
+
+                        </button>
+
+                    </form>
+
+
+                {% endif %}
+
+
+                <!-- EXCLUIR -->
+
+                <form
+                    method="POST"
+                    action="{% url 'excluir_avaliacao' avaliacao.id %}"
+                    onsubmit="
+                        return confirm(
+                            'Deseja realmente excluir esta avaliação?'
+                        );
+                    "
+                >
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn-danger"
+                    >
+
+                        <i class="fa-solid fa-trash"></i>
+
+                        Excluir
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+    {% empty %}
+
+
+        <div class="avaliacoes-admin-vazio">
+
+            <i class="fa-regular fa-star"></i>
+
+            <h3>
+                Nenhuma avaliação encontrada
+            </h3>
+
+            <p>
+                Não existem avaliações para este filtro.
+            </p>
+
+        </div>
+
+
+    {% endfor %}
+
+
+</div>
+
+
+{% endblock %}

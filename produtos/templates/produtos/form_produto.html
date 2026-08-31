@@ -1,0 +1,239 @@
+{% extends 'painel/base_painel.html' %}
+
+{% block title %}
+    {{ titulo }} | Bella Rosa
+{% endblock %}
+
+{% block page_title %}
+    {{ titulo }}
+{% endblock %}
+
+{% block menu_produtos %}active{% endblock %}
+
+{% block content %}
+
+<div class="admin-page-header">
+
+    <div>
+
+        <h1>
+            {{ titulo }}
+        </h1>
+
+        <p>
+            Preencha as informações do produto.
+        </p>
+
+    </div>
+
+    <a
+        href="{% url 'painel_produtos' %}"
+        class="btn-outline"
+    >
+        <i class="fa-solid fa-arrow-left"></i>
+        Voltar
+    </a>
+
+</div>
+
+
+<div class="admin-form-container">
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+    >
+
+        {% csrf_token %}
+
+
+        <!-- ERROS -->
+
+        {% if form.non_field_errors %}
+
+            <div class="error">
+
+                {{ form.non_field_errors }}
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- NOME -->
+
+        <div class="form-group">
+
+            <label for="{{ form.nome.id_for_label }}">
+                Nome do produto
+            </label>
+
+            {{ form.nome }}
+
+            {% if form.nome.errors %}
+
+                <div class="error">
+                    {{ form.nome.errors }}
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- DESCRIÇÃO -->
+
+        <div class="form-group">
+
+            <label for="{{ form.descricao.id_for_label }}">
+                Descrição
+            </label>
+
+            {{ form.descricao }}
+
+            {% if form.descricao.errors %}
+
+                <div class="error">
+                    {{ form.descricao.errors }}
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- PREÇO -->
+
+        <div class="form-group">
+
+            <label for="{{ form.preco.id_for_label }}">
+                Preço
+            </label>
+
+            {{ form.preco }}
+
+            {% if form.preco.errors %}
+
+                <div class="error">
+                    {{ form.preco.errors }}
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- ESTOQUE -->
+
+        <div class="form-group">
+
+            <label for="{{ form.estoque.id_for_label }}">
+                Quantidade em estoque
+            </label>
+
+            {{ form.estoque }}
+
+            {% if form.estoque.errors %}
+
+                <div class="error">
+                    {{ form.estoque.errors }}
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- IMAGEM -->
+
+        <div class="form-group">
+
+            <label for="{{ form.imagem.id_for_label }}">
+                Imagem do produto
+            </label>
+
+            {% if produto and produto.imagem %}
+
+                <div style="margin-bottom: 15px;">
+
+                    <img
+                        src="{{ produto.imagem.url }}"
+                        alt="{{ produto.nome }}"
+                        style="
+                            width: 150px;
+                            height: 150px;
+                            object-fit: cover;
+                            border-radius: 10px;
+                        "
+                    >
+
+                </div>
+
+            {% endif %}
+
+            {{ form.imagem }}
+
+            {% if form.imagem.errors %}
+
+                <div class="error">
+                    {{ form.imagem.errors }}
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- ATIVO -->
+
+        <div class="form-group">
+
+            <label>
+
+                {{ form.ativo }}
+
+                Produto ativo
+
+            </label>
+
+            <small>
+                Produtos inativos não aparecem na vitrine para os clientes.
+            </small>
+
+        </div>
+
+
+        <!-- BOTÕES -->
+
+        <div
+            style="
+                display: flex;
+                gap: 10px;
+                margin-top: 25px;
+            "
+        >
+
+            <button
+                type="submit"
+                class="btn-primary"
+            >
+                <i class="fa-solid fa-floppy-disk"></i>
+
+                {{ texto_botao }}
+            </button>
+
+
+            <a
+                href="{% url 'painel_produtos' %}"
+                class="btn-outline"
+            >
+                Cancelar
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

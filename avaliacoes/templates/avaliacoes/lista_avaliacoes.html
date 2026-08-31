@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Avaliações | Bella Rosa
+{% endblock %}
+
+{% block content %}
+
+<section class="avaliacoes-section">
+
+    <div class="avaliacoes-header">
+
+        <div>
+            <h1>Avaliações</h1>
+
+            <p>
+                Veja o que nossas clientes estão falando sobre o Bella Rosa.
+            </p>
+        </div>
+
+        {% if user.is_authenticated %}
+
+            <a
+                href="{% url 'cadastrar_avaliacao' %}"
+                class="btn-primary"
+            >
+                <i class="fa-solid fa-star"></i>
+                Avaliar o Bella Rosa
+            </a>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="avaliacoes-grid">
+
+        {% for avaliacao in avaliacoes %}
+
+            <div class="avaliacao-card">
+
+                <div class="avaliacao-topo">
+
+                    <div>
+
+                        <strong>
+
+                            {% if avaliacao.cliente.first_name %}
+
+                                {{ avaliacao.cliente.first_name }}
+
+                            {% else %}
+
+                                {{ avaliacao.cliente.username }}
+
+                            {% endif %}
+
+                        </strong>
+
+                        <span>
+                            {{ avaliacao.criado_em|date:"d/m/Y" }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="avaliacao-estrelas">
+
+                        {% if avaliacao.nota == 1 %}
+                            ⭐
+                        {% elif avaliacao.nota == 2 %}
+                            ⭐⭐
+                        {% elif avaliacao.nota == 3 %}
+                            ⭐⭐⭐
+                        {% elif avaliacao.nota == 4 %}
+                            ⭐⭐⭐⭐
+                        {% elif avaliacao.nota == 5 %}
+                            ⭐⭐⭐⭐⭐
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <p class="avaliacao-comentario">
+                    {{ avaliacao.comentario }}
+                </p>
+
+            </div>
+
+        {% empty %}
+
+            <div class="avaliacoes-vazio">
+
+                <i class="fa-regular fa-star"></i>
+
+                <h3>
+                    Nenhuma avaliação publicada ainda.
+                </h3>
+
+                <p>
+                    Seja a primeira cliente a compartilhar sua experiência.
+                </p>
+
+                {% if user.is_authenticated %}
+
+                    <a
+                        href="{% url 'cadastrar_avaliacao' %}"
+                        class="btn-primary"
+                    >
+                        Fazer avaliação
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}
